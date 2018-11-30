@@ -1,4 +1,6 @@
 # .gitignore
 # Feel free to add your useless shizzle
+# Files
+/src/network/adjacency.npy
 
 # Folders #
