@@ -7,17 +7,18 @@ Created on Thu Nov 29 21:16:12 2018
 
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix, save_npz
 import matplotlib.pyplot as plt
 
 # Import protein interaction network
-protein_data = pd.read_csv('./data/protein_links.txt', sep=' ')
+protein_data = pd.read_csv('../../data/protein_links.txt', sep=' ')
 # Format protein names (keep only ID)
 protein_data[['protein1','protein2']] = protein_data[['protein1','protein2']].apply(lambda x: x.str.slice(13,24))
 # Convert ID to int
 protein_data[['protein1','protein2']] = protein_data[['protein1','protein2']].astype(int)
 
 # Import gene names, ids and transcribed protein ids
-gene_data = pd.read_csv('./data/gene_name_transcript_protein_id.txt', sep=',')
+gene_data = pd.read_csv('../../data/gene_name_transcript_protein_id.txt', sep=',')
 
 # Lookup table of genes that express a given protein
 prot2gene = gene_data.drop(columns=['Gene stable ID','Transcript stable ID'])
@@ -33,7 +34,7 @@ print("Ensembl gene database: {0} genes coding for {0} proteins found".format(pr
 prot_in_network = protein_data[['protein1']].drop_duplicates(keep='first').rename(columns={'protein1':'protein_id'})
 # Filter genes: Keep only those that code for a protein in the network
 genes_in_network = prot_in_network.set_index('protein_id').join(prot2gene)
-print("{0} proteins couldn't be associated to a gene".format(genes_in_network['gene_name'].isnull().sum()))
+print("{0} proteins in the network couldn't be associated to a gene".format(genes_in_network['gene_name'].isnull().sum()))
 genes_in_network = genes_in_network.dropna(subset=['gene_name'])
 print("{0} genes coding for {1} proteins found in protein interaction network"
       .format(genes_in_network[['gene_name']].drop_duplicates(keep='first').shape[0],prot_in_network.shape[0]))
@@ -60,8 +61,8 @@ edges = edges.astype(int)
 edges_weighted = edges.copy()
 edges_weighted[['combined_score']]= edges[['combined_score']].apply(lambda x: 1/x)
 # Heat kernel
-sigma = edges_weighted['combined_score'].mean()
-edges_weighted[['combined_score']] = edges_weighted[['combined_score']].apply(lambda x: np.exp(-x**2/sigma**2))
+sigma = edges_weighted['combined_score'].std()
+edges_weighted[['combined_score']] = edges_weighted[['combined_score']].apply(lambda x: np.exp(-x**2/(2*sigma**2)))
 edges_weighted = edges_weighted.rename(columns={'combined_score':'weight'})
 
 # Adjacency matrix
@@ -72,4 +73,5 @@ for idx, row in edges_weighted.iterrows():
     i, j = int(row.node_idx), int(row.node_idx_2)
     adjacency[i, j] = row.weight
     adjacency[j, i] = row.weight
-np.save('adjacency',adjacency)
+
+save_npz("adjacency_sparse.npz", csr_matrix(adjacency))
