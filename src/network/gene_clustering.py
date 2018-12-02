@@ -6,43 +6,52 @@ Created on Wed Nov 28 15:29:52 2018
 """
 
 import numpy as np
-import pandas as pd
 import networkx as nx
-from sklearn.manifold import spectral_embedding
+import pandas as pd
+from sklearn.cluster import spectral_clustering
+from scipy import sparse
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 
 # Load adjacency matrix and plot for good measure
-adjacency = np.load("adjacency.npy")
-plt.spy(adjacency)
+adjacency_sparse = sparse.load_npz("adjacency_sparse.npz")
 
+gene_graph = nx.from_scipy_sparse_matrix(adjacency_sparse)
+n_nodes = gene_graph.order()
 # Eliminate disconnected nodes
-k_i = np.sum(adjacency, axis=1)
-n_nodes = adjacency.shape[0]
-disc_nodes = k_i == 0
-n_disc_nodes = np.sum(disc_nodes)
-print("{0:.3f} % of nodes are disconnected".format(n_disc_nodes/n_nodes*100))
+isolated_nodes = nx.isolates(gene_graph)
+print("{0:.3f} % of nodes are disconnected"
+      .format(len(list(isolated_nodes))/n_nodes*100))
+gene_graph.remove_nodes_from(isolated_nodes)
 
-# Reduced adjacency (without disconnected noted)
-adjacency_red = adjacency[~disc_nodes, :]
-adjacency_red = adjacency_red[:,~disc_nodes] # Python expert level 1000
-
-# Use networkx to identify largest component 
-gene_graph = nx.from_numpy_array(adjacency_red)
+# Keep largest component only
 print("There are {0} connected components".format(nx.number_connected_components(gene_graph)))
-# Adjacency of largest component only
-largest_cc = np.array(list(max(nx.connected_components(gene_graph), key=len)))
-adjacency_lc = adjacency_red[largest_cc,:]
-adjacency_lc = adjacency_lc[:,largest_cc]
-print("The largest component contains {0:.3f} % of all genes".format(adjacency_lc.shape[0]/n_nodes*100))
+gene_graph_lc = max(nx.connected_component_subgraphs(gene_graph), key=len)
+print("The largest component contains {0:.3f} % of all genes".format(gene_graph_lc.order()/n_nodes*100))
+
+# Get adjacency to do further processing
+adjacency_lc = nx.to_scipy_sparse_matrix(gene_graph_lc)
+
+# Widen kernel width to get a better similarity measure
+# Equivalent to having a larger standart deviation of distances 
+adjacency_lc = adjacency_lc.power(1/4)
 
 # Sklearn magic to do spectral embedding (Laplacian eigenmap)
-dims = 3
-x_embed = spectral_embedding(adjacency_lc, n_components=dims, norm_laplacian=True, drop_first=True)
+# ÄNDERE FÜR ANGERI CLUSTER AHZAU
+k = 40
+print("Spectral clustering: Trying to find {0} clusters".format(k))
+x_labels = spectral_clustering(adjacency_lc, n_clusters=k, assign_labels='kmeans')
 
-# Plot embedded data
-fig = plt.figure(figsize=(15,10))
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(x_embed[:,0], x_embed[:,1], x_embed[:,2], color='b')
-ax.set_title('Normalized Laplacian eigenmap (d = 3)')
+labels, counts = np.unique(x_labels, return_counts=True)
+plt.bar(labels, counts)
+plt.xlabel('Cluster')
+plt.ylabel('Number of genes')
+
+protein_gene_index = pd.read_csv('protein_genes_index.csv')
+cluster_assignments = pd.DataFrame(data=x_labels, index=np.array(gene_graph_lc.nodes()), columns=['cluster'])
+protein_gene_cluster = protein_gene_index.join(cluster_assignments, on='node_idx')
+protein_gene_cluster = protein_gene_cluster.dropna(subset=['cluster'])
+protein_gene_cluster[['cluster']] = protein_gene_cluster[['cluster']].astype(int)
+# Save cluster assignments to csv
+protein_gene_cluster.to_csv('protein_gene_cluster_assign.csv', encoding='utf-8')
