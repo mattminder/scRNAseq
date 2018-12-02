@@ -3,4 +3,9 @@
 # Files
 /src/network/adjacency.npy
 
-# Folders #
+# Large data files
+/data/
+
+# Pycache
+*.cypthon-36
+__pycache__/
