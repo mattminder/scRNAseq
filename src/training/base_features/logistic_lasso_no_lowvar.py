@@ -52,7 +52,6 @@ print('Loading Herring 2017')
 herring_x, gene_names_herring, cell_names_herring = dl.load_data(DATA_FOLDER + 'herring2017_data.csv.gz')
 # TODO: FIX DATA_LOAD FUNCTION SUCH THAT THIS ISN'T NECESSARY
 herring_x = herring_x[:, 1:]
-gene_names_herring = gene_names_herring[1:]
 herring_scaled = prep.scale(varThresh.transform(herring_x))
 
 # Load Joost 2016 Data
@@ -60,7 +59,6 @@ print('Loading Joost 2016')
 joost_x, gene_names_joost, cell_names_joost = dl.load_data(DATA_FOLDER + 'joost2016_data.csv.gz')
 # TODO: FIX DATA_LOAD FUNCTION SUCH THAT THIS ISN'T NECESSARY
 joost_x = joost_x[:, 1:]
-#gene_names_joost= gene_names_joost[1:]
 joost_scaled = prep.scale(varThresh.transform(joost_x))
 
 # Prediction

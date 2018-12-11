@@ -1,6 +1,4 @@
 from sklearn import linear_model as lm
-# from sklearn import preprocessing as prep
-# from sklearn import feature_selection as fsel
 import numpy as np
 import helpers.data_load as dl
 import pickle as pk
@@ -8,21 +6,19 @@ import pickle as pk
 import os
 print(os.getcwd())
 
-# Loading files
+# Loading file
 print('Loading Trainset')
-DATA_FOLDER = '../../../results/pca/'
-RES_FOLDER = '../../../results/pca/'
+DATA_FOLDER = '../../../data/'
+RES_FOLDER = '../../../results/base_features/'
 
-# Nb PCs to use
-n_pcs=50
-
-train_x = np.load(DATA_FOLDER+'train_500pcs.npy')[:, :n_pcs]
-train_y, cell_names_y = dl.load_response(DATA_FOLDER + '../../data/response.csv.gz')
+train_x = np.load(RES_FOLDER + 'train_x_rescaled_nolovar.npy')
+train_y, cell_names_y = dl.load_response(DATA_FOLDER + 'response.csv.gz')
 train_y[train_y == 0] = -1  # Encode as +-1
 
-# Train Logistic Lasso
+
+# Train Logistic Ridge
 print('Fitting Model')
-classif = lm.LogisticRegressionCV(penalty='l1',     # Lasso regularization
+classif = lm.LogisticRegressionCV(penalty='l2',     # Lasso regularization
                                   Cs=10,            # Size of grid for parameter search
                                   verbose=0,
                                   cv=10,            # 10-Fold CV
@@ -35,21 +31,18 @@ classif = lm.LogisticRegressionCV(penalty='l1',     # Lasso regularization
                                         train_y)
 
 # Save Classif
-savefile = open(RES_FOLDER + 'log_lasso_' + str(n_pcs) + 'pcs_classif.txt', 'wb')
+savefile = open(RES_FOLDER + 'log_ridge_no_lovar_classif.txt', 'wb')
 pk.dump(classif, savefile)
 savefile.close()
 
-# Load Herring 2017 Data
-print('Loading Herring 2017')
-herring_x = np.load(DATA_FOLDER + 'herring_500pcs.npy')[:, :n_pcs]
-
-# Load Joost 2016 Data
-print('Loading Joost 2016')
-joost_x = np.load(DATA_FOLDER + 'joost_500pcs.npy')[:, :n_pcs]
+# Load Herring & Joost
+herring_x = np.load(RES_FOLDER+'herring2017_rescaled_nolovar.npy')
+joost_x = np.load(RES_FOLDER+'joost2016_rescaled_nolovar.npy')
 
 # Prediction
 print('Predictions')
 herring_pred = classif.predict_proba(herring_x)
 joost_pred = classif.predict_proba(joost_x)
-np.save(arr=herring_pred, file=RES_FOLDER+'log_lasso_' + str(n_pcs) + 'pcs_preds_herring.npy')
-np.save(arr=joost_pred, file=RES_FOLDER+'log_lasso_' + str(n_pcs) + 'pcs_preds_joost.npy')
+np.save(arr=herring_pred, file=RES_FOLDER+'log_ridge_no_lovar_preds_herring.npy')
+np.save(arr=joost_pred, file=RES_FOLDER+'log_ridge_no_lovar_preds_joost.npy')
+

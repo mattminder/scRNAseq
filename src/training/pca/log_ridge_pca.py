@@ -14,7 +14,7 @@ DATA_FOLDER = '../../../results/pca/'
 RES_FOLDER = '../../../results/pca/'
 
 # Nb PCs to use
-n_pcs=50
+n_pcs=500
 
 train_x = np.load(DATA_FOLDER+'train_500pcs.npy')[:, :n_pcs]
 train_y, cell_names_y = dl.load_response(DATA_FOLDER + '../../data/response.csv.gz')
@@ -22,7 +22,7 @@ train_y[train_y == 0] = -1  # Encode as +-1
 
 # Train Logistic Lasso
 print('Fitting Model')
-classif = lm.LogisticRegressionCV(penalty='l1',     # Lasso regularization
+classif = lm.LogisticRegressionCV(penalty='l2',     # Lasso regularization
                                   Cs=10,            # Size of grid for parameter search
                                   verbose=0,
                                   cv=10,            # 10-Fold CV
@@ -35,7 +35,7 @@ classif = lm.LogisticRegressionCV(penalty='l1',     # Lasso regularization
                                         train_y)
 
 # Save Classif
-savefile = open(RES_FOLDER + 'log_lasso_' + str(n_pcs) + 'pcs_classif.txt', 'wb')
+savefile = open(RES_FOLDER + 'log_ridge_' + str(n_pcs) + 'pcs_classif.txt', 'wb')
 pk.dump(classif, savefile)
 savefile.close()
 
@@ -51,5 +51,5 @@ joost_x = np.load(DATA_FOLDER + 'joost_500pcs.npy')[:, :n_pcs]
 print('Predictions')
 herring_pred = classif.predict_proba(herring_x)
 joost_pred = classif.predict_proba(joost_x)
-np.save(arr=herring_pred, file=RES_FOLDER+'log_lasso_' + str(n_pcs) + 'pcs_preds_herring.npy')
-np.save(arr=joost_pred, file=RES_FOLDER+'log_lasso_' + str(n_pcs) + 'pcs_preds_joost.npy')
+np.save(arr=herring_pred, file=RES_FOLDER+'log_ridge_' + str(n_pcs) + 'pcs_preds_herring.npy')
+np.save(arr=joost_pred, file=RES_FOLDER+'log_ridge_' + str(n_pcs) + 'pcs_preds_joost.npy')
