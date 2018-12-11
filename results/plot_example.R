@@ -1,10 +1,10 @@
-raincloud_plotter("base_features/log_lasso_preds_herring.npy", 
+raincloud_plotter("pca/extraTree_500pcs_preds_herring.npy", 
                   "../data/herring2017_celltype.csv.gz", 
-                  "base_features/log_lasso_preds_herring_rc.pdf", 
-                  title = "Prediction on Herring 2017, Logistic Lasso trained on 
-                  untransformed data.")
-raincloud_plotter("base_features/log_lasso_preds_joost.npy", 
+                  "pca/extraTree_500pcs_preds_herring_rc.pdf", 
+                  title = "Prediction on Herring 2017, extraTree trained on 
+                  first 500 PCs")
+raincloud_plotter("pca/extraTree_500pcs_preds_joost.npy", 
                   "../data/joost2016_celltype.csv.gz", 
-                  "base_features/log_lasso_preds_joost_rc.pdf", 
-                  title = "Prediction on Joost 2016, Logistic Lasso trained on 
-                  untransformed data.")
+                  "pca/extraTree_500pcs_preds_joost_rc.pdf", 
+                  title = "Prediction on Joost 2016, extraTree trained on 
+                  first 500 PCs")
