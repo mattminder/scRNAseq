@@ -1,0 +1,44 @@
+\documentclass[10pt,conference,compsocconf]{IEEEtran}
+
+\usepackage{hyperref}
+\usepackage{graphicx}	% For figure environment
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+
+\newcommand{\beginsupplement}{%
+	\setcounter{table}{0}
+	\renewcommand{\thetable}{S\arabic{table}}%
+	\setcounter{figure}{0}
+	\renewcommand{\thefigure}{S\arabic{figure}}%
+}
+
+\begin{document}
+\title{CS-433 Machine Learning Project 1}
+
+\author{
+  Matthias Minder, Zora Oswald, Silvan Stettler\\
+}
+
+\maketitle
+
+\begin{abstract}
+Abstract...
+\end{abstract}
+
+\section*{Introduction} 
+In recent years, the emergence of single cell RNA sequencing (scRNA-seq) has lead to the discovery of many new cell types based on their gene expression profile. The question naturally arises whether it would be possible to predict cell types using a machine learning approach. Of special interest is the detection and \textit{de novo} discovery of stem cells in tissues for which no stem cell population has been characterized. This project aims to create a classifier able to assign a "stemness" score to cells based on scRNA-seq data. 
+\par
+However, several challenges are associated with working with scRNA-seq data: 
+\section*{Methods}
+
+\section*{Results}
+
+\section*{Conclusion}
+
+%%% Bibliography
+%\bibliographystyle{IEEEtran}
+%\bibliography{literature-project2}
+
+
+\end{document}
