@@ -14,8 +14,9 @@ raincloud_plotter = function(pred_f,     # Numpy file containing predictions
                              title=NULL, # Optional title to add to plot
                              dims = NULL,# Dimensions of output pdf,
                                          # vector with element (width, height)
-                             col = 2     # Column of npy array containing probability
+                             col = 2,    # Column of npy array containing probability
                                          # disregarded if 1D array
+                             thresh=NULL # Threshold for cutoff for binarizing
                              ) {
   if (path_app) {
     pred_f = paste(mypath, pred_f, sep="")
@@ -33,6 +34,11 @@ raincloud_plotter = function(pred_f,     # Numpy file containing predictions
     pred = pred[,col]
   }
   celltype = read.csv(celltype_f)[,2]
+  
+  if (!is.null(thresh)) {
+    pred = as.integer(pred>thresh)
+    
+  }
   
   raincloud_theme = theme(
     text = element_text(size = 10),
@@ -53,8 +59,8 @@ raincloud_plotter = function(pred_f,     # Numpy file containing predictions
   tmp = data.frame(value = pred, variable = as.factor(celltype))
   g <- ggplot(data = tmp, aes(y = value, x = variable, fill = variable)) +
     geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .6) +
-    geom_point(aes(y = value, color = variable),
-               position = position_jitter(width = .15), size = .5, alpha = .6) +
+    geom_point(aes(y = value, color = variable), size = .5, alpha = .6,
+               position = position_jitter(width = .15, height = 0))+
     geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.3) +
     expand_limits(x = 5.25) +
     coord_flip(ylim=c(0, 1)) +

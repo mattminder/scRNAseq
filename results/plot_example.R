@@ -1,10 +1,20 @@
-raincloud_plotter("pca/extraTree_500pcs_preds_herring.npy", 
+library(glue)
+subfolder = "nested"
+method = "xgboost_nested"
+title_suffix = ""
+predfiletype = "csv"
+col=1
+thresh = NULL
+raincloud_plotter(glue("{subfolder}/{method}_preds_herring.{predfiletype}"), 
                   "../data/herring2017_celltype.csv.gz", 
-                  "pca/extraTree_500pcs_preds_herring_rc.pdf", 
-                  title = "Prediction on Herring 2017, extraTree trained on 
-                  first 500 PCs")
-raincloud_plotter("pca/extraTree_500pcs_preds_joost.npy", 
+                  glue("{subfolder}/{method}_preds_herring_rc.pdf"), 
+                  title = glue("Prediction on Herring 2017, {method} {title_suffix}"),
+                  col = col,
+                  thresh = thresh)
+raincloud_plotter(glue("{subfolder}/{method}_preds_joost.{predfiletype}"), 
                   "../data/joost2016_celltype.csv.gz", 
-                  "pca/extraTree_500pcs_preds_joost_rc.pdf", 
-                  title = "Prediction on Joost 2016, extraTree trained on 
-                  first 500 PCs")
+                  glue("{subfolder}/{method}_preds_joost_rc.pdf"), 
+                  title = glue("Prediction on Joost 2016, {method} {title_suffix}"),
+                  col=col,
+                  thresh = thresh
+                  )
