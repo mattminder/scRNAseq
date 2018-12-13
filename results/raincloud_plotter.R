@@ -22,9 +22,12 @@ raincloud_plotter = function(pred_f,     # Numpy file containing predictions
     celltype_f = paste(mypath, celltype_f, sep="")
     savefile = paste(mypath, savefile, sep="")
   }
-
   
-  pred = npyLoad(pred_f)
+  if (grepl(".npy", pred_f)) {
+    pred = npyLoad(pred_f)
+  } else if (grepl(".csv", pred_f)) {
+    pred = read.csv(pred_f, header = F, sep=",")
+  }
   
   if (!is.null(dim(pred))) {
     pred = pred[,col]
@@ -76,3 +79,5 @@ raincloud_plotter = function(pred_f,     # Numpy file containing predictions
   }
   return(g)
 }
+
+
