@@ -6,17 +6,13 @@ from sklearn.model_selection import train_test_split
 import os
 print(os.getcwd())
 
-# Loading files
+# Loading file
 print('Loading Trainset')
-DATA_FOLDER = '../../../results/pca/'
-RES_FOLDER = '../../../results/pca/'
+DATA_FOLDER = '../../../data/'
+RES_FOLDER = '../../../results/base_features/'
 
-# Nb PCs to use
-n_pcs=500
-pc_labels = np.linspace(1, n_pcs, n_pcs)
-
-train_x = np.load(DATA_FOLDER+'train_500pcs.npy')[:, :n_pcs]
-train_y, cell_names_y = dl.load_response(DATA_FOLDER + '../../data/response.csv.gz')
+train_x = np.load(RES_FOLDER + 'train_x_rescaled_nolovar.npy')
+train_y, cell_names_y = dl.load_response(DATA_FOLDER + 'response.csv.gz')
 #train_y[train_y == 0] = -1  # Encode as +-1
 
 # Split into test and validation set
@@ -53,15 +49,12 @@ classif = xgb.train(param, dtrain, num_round, evallist)
 
 
 # Save Classif
-classif.save_model(RES_FOLDER + 'xgboost_' + str(n_pcs) + 'pcs_classif.model')
-classif.dump_model(RES_FOLDER + 'xgboost_' + str(n_pcs) + 'pcs_classif.txt')
-# Load Herring 2017 Data
-print('Loading Herring 2017')
-herring_x = np.load(DATA_FOLDER + 'herring_500pcs.npy')[:, :n_pcs]
+classif.save_model(RES_FOLDER + 'xgboost_classif.model')
+classif.dump_model(RES_FOLDER + 'xgboost_classif.txt')
 
-# Load Joost 2016 Data
-print('Loading Joost 2016')
-joost_x = np.load(DATA_FOLDER + 'joost_500pcs.npy')[:, :n_pcs]
+# Load Herring & Joost
+herring_x = np.load(RES_FOLDER+'herring2017_rescaled_nolovar.npy')
+joost_x = np.load(RES_FOLDER+'joost2016_rescaled_nolovar.npy')
 
 # Prediction
 print('Predictions')
@@ -70,8 +63,8 @@ herring_pred = classif.predict(data=xgb.DMatrix(herring_x),
 joost_pred = classif.predict(data=xgb.DMatrix(joost_x),
                              validate_features=False)
 
-np.save(arr=herring_pred, file=RES_FOLDER+'xgboost_' + str(n_pcs) + 'pcs_preds_herring.npy')
-np.save(arr=joost_pred, file=RES_FOLDER+'xgboost_' + str(n_pcs) + 'pcs_preds_joost.npy')
-np.savetxt(RES_FOLDER+'xgboost_' + str(n_pcs) + 'pcs_preds_herring.csv', herring_pred, delimiter=',')
-np.savetxt(RES_FOLDER+'xgboost_' + str(n_pcs) + 'pcs_preds_joost.csv', joost_pred, delimiter=',')
+np.save(arr=herring_pred, file=RES_FOLDER+'xgboost_preds_herring.npy')
+np.save(arr=joost_pred, file=RES_FOLDER+'xgboost_preds_joost.npy')
+np.savetxt(RES_FOLDER+'xgboost_preds_herring.csv', herring_pred, delimiter=',')
+np.savetxt(RES_FOLDER+'xgboost_preds_joost.csv', joost_pred, delimiter=',')
 
