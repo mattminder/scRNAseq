@@ -6,38 +6,34 @@ Created on Sun Dec  9 00:44:52 2018
 """
 
 import numpy as np
-import networkx as nx
-import pandas as pd
-import pygsp as pg
-from helpers.gsp_helpers import graph_sampling, graph_filtering
-from helpers.data_import import train_data_in_network
-from scipy import sparse
+from helpers_network.data_import import transform_data_with_network
 import matplotlib.pyplot as plt
+
 
 # Two dimensionality reduction techniques based on GSP:
 # 1. Graph sampling based on vertices where signal energy is the most concentrated
-# 2. Graph frequency sampling: Low/high pass filtering
+# 2. Graph-based Filtering (GBF) according to Rui et al. 
 
-adjacency_largest_component = sparse.load_npz('adjacency_largest_component.npz')
-n_nodes = adjacency_largest_component.shape[0]
-node_features = train_data_in_network();
-node_features = np.unique(node_features, axis=0)
-# read_csv preserves ordering of features as in the csv (increasing feature idx).
-# Need to translate this into node order
-node_order = np.argsort(node_features[:,1])
-nodes_ordered = node_features[node_order,0]
-train_data = pd.read_csv('../../data/train_data.csv',usecols=node_features[:,1])
+n_nodes_lc = 20289
+K = 2570
 
-# Map train data onto a graph signal (One value per node)
-graph_signals = np.zeros((train_data.shape[0], n_nodes))
-graph_signals[:,nodes_ordered] = train_data.values
-# Create PyGSP graph
-#graph = pg.graphs.Graph(adjacency_largest_component)
-# Compute Fourier basis
-#graph.compute_fourier_basis(recompute=False)
+e = np.load('eigenvalues_normalized.npy')
+U = np.load('eigenvectors_normalized.npy')
 
-# Create signal
-#### TODO ######
+x_GS_LF_ind_train, x_GS_HF_ind_train, x_GBF_LF_ind_train, x_GBF_HF_ind_train = transform_data_with_network('ind_train_data', n_nodes_lc, U, e, K)
+np.save('../../data/ind_train_data_GS_LF.npy', x_GS_LF_ind_train)
+np.save('../../data/ind_train_data_GBF_HF.npy', x_GBF_HF_ind_train)
+np.save('../../data/ind_train_data_GS_HF.npy', x_GS_HF_ind_train)
+np.save('../../data/ind_train_data_GBF_LF.npy', x_GBF_LF_ind_train)
+
+x_GS_LF_test, x_GS_HF_test, x_GBF_LF_test, x_GBF_HF_test = transform_data_with_network('test_data', n_nodes_lc, U, e, K)
+np.save('../../data/test_data_GS_LF.npy', x_GS_LF_test)
+np.save('../../data/test_data_GBF_HF.npy', x_GBF_HF_test)
+np.save('../../data/test_data_GS_HF.npy', x_GS_HF_test)
+np.save('../../data/test_data_GBF_LF.npy', x_GBF_LF_test)
+
+
+
 
 
 
