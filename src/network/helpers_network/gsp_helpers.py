@@ -13,22 +13,37 @@ def graph_sampling(eigenvecs, eigenvals, K, interval=None):
     specified in interval."""
     
     if interval:
-        index = np.arange(len(eigenvals))
-        idx_low = min(index[eigenvals > interval[0]])
-        idx_high = min(index[eigenvals > interval[1]])
+        idx_low = interval[0]
+        idx_high = interval[1]
     else:
         idx_low = 0
         idx_high = len(eigenvals)
     
     # Computed weighted coherence in given interval
     F_basis_sampled = eigenvecs[:,idx_low:idx_high]
-    graph_weighted_coherence = np.sum(np.power(F_basis_sampled, 2), axis=1)
+    graph_weighted_coherence_nodes = np.sum(np.power(F_basis_sampled, 2), axis=1)
     
     # Choose K nodes with the highest weighted coherence
-    keep_nodes = np.argsort(-graph_weighted_coherence)[0:K]
+    keep_nodes = np.argsort(-graph_weighted_coherence_nodes)[0:K]
     
     return keep_nodes
 
+def graph_weighted_coherence(U):
+    return np.power(U, 2)
+
+def gbf(eigenvecs, x, K, method):
+    """Graph-based filtering: All eigenvectors with a eigenvalue below the
+    cut-off frequency f_c span a subspace. The original data is then projected
+    onto this subspace. This is somewhat similar to low or highpass filtering."""
+    
+    if (method=='low-pass'):
+        subspace_base = eigenvecs[:,0:K]
+    else:
+        subspace_base = eigenvecs[:,-K:]
+    # Project on subspace
+    return subspace_base.T @ x
+    
+    
 def lowpass_kernel(e, t):
     def lpfilter(a, t):
         return 1/(1+t*a)
