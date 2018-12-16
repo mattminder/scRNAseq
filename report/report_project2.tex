@@ -5,7 +5,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{float}
-
+\usepackage{url}
 \newcommand{\beginsupplement}{%
 	\setcounter{table}{0}
 	\renewcommand{\thetable}{S\arabic{table}}%
@@ -44,7 +44,7 @@ For the basic classifiers, four different machine learning methods were used on 
 \subsection{Dataset Preparation}
 
 \subsection{Dimensionality Reductions}
-
+The dimensionality of the data was reduced using conventional Principal Component Analysis (PCA) and two methods based on graph signal processing on a graph constructed using a protein interaction network. Protein interaction networks are representations of the physical and biochemical interaction between proteins in an organism. In our case, the weight of the edges between individual proteins, which form the nodes, are a measure of how confidently an interaction can be judged to be true. The protein interaction data that was used is available in the STRING database (\url{www.string-db.org}) \cite{Szklarczyk2016}. By replacing each protein in the network with the gene that codes for it, a gene network can be created. The genome along with the corresponding expressed proteins for mus musculus are available on the Ensembl database (\url{www.ensembl.org}) \cite{Zerbino2017}.  
 \subsection{Machine Learning Methods}
 
 
