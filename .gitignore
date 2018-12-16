@@ -5,6 +5,7 @@
 
 # Large data files
 /data/
+*.npy
 
 # Pycache
 *.cypthon-36

@@ -36,3 +36,9 @@ def transform_from_files(x, transf_path, transf_type='skl'):
         transf = pkl.load(transf_file)
         transf_file.close()
         return transf.transform(x)
+    
+    if (transf_type == 'network'):
+        transf_file = open(transf_path, "rb")
+        transf = pkl.load(transf_file)
+        transf_file.close()
+        return transf.fit_transform(x)
