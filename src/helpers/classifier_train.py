@@ -45,7 +45,7 @@ def all_models_train(train_x, train_y, classif_folder):
     xgboost_classif = xgb.train(param, dtrain, num_round, evallist)
 
     # Save
-    savefile = open(classif_folder + 'xgboost_bf_classif.pkl', 'wb')
+    savefile = open(classif_folder + 'xgboost_classif.pkl', 'wb')
     pkl.dump(xgboost_classif, savefile)
     savefile.close()
 
@@ -63,7 +63,7 @@ def all_models_train(train_x, train_y, classif_folder):
                                                   train_y)
 
     # Save
-    savefile = open(classif_folder + 'randomForest_bf_classif.pkl', 'wb')
+    savefile = open(classif_folder + 'randomForest_classif.pkl', 'wb')
     pkl.dump(rf_classif, savefile)
     savefile.close()
 
@@ -84,7 +84,7 @@ def all_models_train(train_x, train_y, classif_folder):
                                                   train_y)
 
     # Save Classif
-    savefile = open(classif_folder + 'log_lasso_bf_classif.pkl', 'wb')
+    savefile = open(classif_folder + 'log_lasso_classif.pkl', 'wb')
     pkl.dump(lasso_classif, savefile)
     savefile.close()
 
