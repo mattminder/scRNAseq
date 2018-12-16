@@ -1,6 +1,6 @@
 from sklearn import feature_selection as fsel
 from sklearn import decomposition as dcmp
-from .network.gene_network import GeneNetworkPCA
+from network.gene_network import GeneNetworkPCA
 
 import pickle as pkl
 
@@ -39,7 +39,8 @@ def fit_pca(train_x, classif_folder, n_components=500, ret=False):
     savefile.close()
     if ret:
         return pca_obj
-    
+
+
 def fit_networkPCA(train_x, transf_folder, n_components=500, ret=False):
     """
     Fits PCA to input data. Saves resulting PC transformation, optionally returns it
@@ -53,8 +54,8 @@ def fit_networkPCA(train_x, transf_folder, n_components=500, ret=False):
     ### method: choose 'gs' or 'gbf'
     ### attenuation: choose 'low-pas' or 'high-pass'
     netw_pca_obj = GeneNetworkPCA('../network/adjacency_sparse.npz','../network/node_index.csv', 
-                              n_components=500, fourier_basis_path=None, 
-                              method='gs', attenuation='low-pass')
+                                  n_components=500, fourier_basis_path=None,
+                                  method='gs', attenuation='low-pass')
     
     savefile = open(transf_folder + 'netw_pca_fit.txt', 'wb')
     pkl.dump(netw_pca_obj, savefile)
