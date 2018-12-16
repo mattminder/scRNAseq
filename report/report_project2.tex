@@ -35,9 +35,17 @@ However, several challenges are associated with working with scRNA-seq data. The
 \par
 Several additional issues arises from a machine learning perspective: Since the genes interact with each other, they are highly correlated. However, due to the noisy nature of the data, identifying highly correlated features is hard. The scRNA-seq data can thus be thought of to be on a sub-dimensional manifold. Accurate representation of this manifold is key for obtaining results that generalize well. Moreover, a good such representation also reduces the impact of drop-outs, since correlated genes should correct the drop-out of one-another. This nature of scRNA-data suggests that application of dimensionality reduction prior to method training will yield results that perform better on independent test data. 
 \par
+Within this report, we compare the prediction performance of stem cell classifiers on an independent test set in order to finally determine a best-performing classifier. The presented classifiers are different, well-established machine learning methods which were trained on data transformed with different dimensionality reduction techniques. 
 
 \section*{Methods}
-\subsection{Set Creation}
+\subsection{Experimental Setup}
+For the entire analysis, 17 publicly available datasets were used [CITATION]. These data sets were split into three sets, train set (eleven data sets), test set (three data sets) and the generalization train set (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on the training set, and their predictive performance was assessed in terms of accuracy on the test set. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in the generalization train set. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed on the test set. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
+For the basic classifiers, four different machine learning methods were used on data untransformed data, as well as data transformed with four different dimensionality reduction strategies. 
+\subsection{Dataset Preparation}
+
+\subsection{Dimensionality Reductions}
+
+\subsection{Machine Learning Methods}
 
 
 \section*{Results}
