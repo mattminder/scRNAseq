@@ -8,14 +8,13 @@ Created on Thu Nov 29 21:16:12 2018
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix, save_npz
-import matplotlib.pyplot as plt
 
 # Import protein interaction network
 protein_data = pd.read_csv('../../data/protein_links.txt', sep=' ')
 # Format protein names (keep only ID)
-protein_data[['protein1','protein2']] = protein_data[['protein1', 'protein2']].apply(lambda x: x.str.slice(13,24))
+protein_data[['protein1','protein2']] = protein_data[['protein1','protein2']].apply(lambda x: x.str.slice(13,24))
 # Convert ID to int
-protein_data[['protein1','protein2']] = protein_data[['protein1', 'protein2']].astype(int)
+protein_data[['protein1','protein2']] = protein_data[['protein1','protein2']].astype(int)
 
 # Import gene names, ids and transcribed protein ids
 gene_data = pd.read_csv('../../data/gene_name_transcript_protein_id.txt', sep=',')
@@ -73,9 +72,12 @@ for idx, row in edges.iterrows():
     adjacency[i, j] += row.combined_score
     adjacency[j, i] += row.combined_score
     
-sigma = adjacency.std()
-heat_kernel = lambda x: np.exp(-(1/x)**2/(2*sigma^2))
+dist = lambda x: 1/x
+dist_v = np.vectorize(dist)
+adjacency[adjacency != 0] = dist_v(adjacency[adjacency != 0])
+sigma = adjacency[adjacency!=0].std()
+heat_kernel = lambda x: np.exp(-(x)**2/(2*sigma**2))
 heat_kernel_v = np.vectorize(heat_kernel)
-adjacency_w = heat_kernel_v(adjacency)
+adjacency[adjacency != 0] = heat_kernel_v(adjacency[adjacency != 0])
 
 save_npz("adjacency_sparse.npz", csr_matrix(adjacency))
