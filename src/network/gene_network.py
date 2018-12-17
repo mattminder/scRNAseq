@@ -19,10 +19,14 @@ class GeneNetworkPCA:
                             index
     n_components:           Number of components of the transformed data 
     method:                 'gs' for graph sampling, 'gbf' for graph-based filtering
+                            'filter' is a rectangle filter without dim. reduction
     attenuation:            Frequency region that is considered for the transformation
                             Options are 'low-pass','high-pass' or 'band-pass'
     cutoffs:                Custom cut-off indices for band-pass between 0 and n_nodes.
-                            Is automatically set when choosing low or high pass attenuation"""
+                            Is automatically set when choosing low or high pass attenuation
+    lap_type:               Only of importance when no fourier_basis_path is given.
+                            Specifies the type of laplacian that is used to compute
+                            the Fourier basis"""
                             
     def __init__(self, W_path, node_index_path, n_components=2570, fourier_basis_path=None,  
                  method='gs', attenuation='low-pass', cutoffs=None, lap_type='combinatorial'):
@@ -62,6 +66,9 @@ class GeneNetworkPCA:
             self.cutoffs = (0, int(self.n_nodes/2))
         elif attenuation == 'high-pass':
             self.cutoffs = (int(self.n_nodes/2), self.n_nodes)
+        elif attenuation not in ['low-pass','high-pass'] and not cutoffs:
+            raise ValueError
+            ("Unknown filter type. Choose either 'low-pass' or 'high-pass'. Alternatively, 'band-pass' and specify cutoffs")
         else:
             self.cutoffs = cutoffs
     
@@ -164,6 +171,18 @@ class GeneNetworkPCA:
         # Project on subspace
         return x @ subspace_base
     
+    def _simple_filter(self, x):
+        """ Simple rectangle filter (keeps frequencies bounded by elements in
+        cutoffs attribute)
+        Does not reduce dimensions, just a filter)"""
+        eigenvecs = self._check_fourier_properties('U')
+        x_hat = x @ eigenvecs 
+        x_hat_filtered = np.zeros(len(x_hat))
+        x_hat_filtered[self.cutoffs[0]:self.cutoffs[1]] = x_hat[self.cutoffs[0]:self.cutoffs[1]]
+        
+        return x_hat_filtered @ eigenvecs.T
+        
+    
     def _fit(self, x, column_labels_path):
         """ Converts input signal x to a signal on the network nodes by mapping each 
         entry of x to a node using the column_labels and then applies the desired
@@ -184,6 +203,9 @@ class GeneNetworkPCA:
             x_tf = self._graph_sampling(signal)
         elif self.method == 'gbf':
             x_tf = self._gbf(signal)
+        elif self.method == 'filter':
+            x_tf = self._simple_filter(signal)
+            x_tf = x_tf[:,node2feature[:,0]]
         else:
             x_tf = signal
             

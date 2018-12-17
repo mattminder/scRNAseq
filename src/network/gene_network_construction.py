@@ -57,20 +57,25 @@ edges = edges.drop(columns=['gene_name', 'gene_name_2'])
 # Need heat kernel for laplacian eigenmap. Convert the combined scores to heat kernel weight
 
 # Convert scores into distance: The higher the combined score, the lower the distance
-edges_weighted = edges.copy()
-edges_weighted[['combined_score']]= edges[['combined_score']].apply(lambda x: 1/x)
+#edges_weighted = edges.copy()
+#edges_weighted[['combined_score']]= edges[['combined_score']].apply(lambda x: 1/x)
 # Heat kernel
-sigma = edges_weighted['combined_score'].std()
-edges_weighted[['combined_score']] = edges_weighted[['combined_score']].apply(lambda x: np.exp(-x**2/(2*sigma**2)))
-edges_weighted = edges_weighted.rename(columns={'combined_score':'weight'})
+#sigma = edges_weighted['combined_score'].std()
+#edges_weighted[['combined_score']] = edges_weighted[['combined_score']].apply(lambda x: np.exp(-x**2/(2*sigma**2)))
+#edges_weighted = edges_weighted.rename(columns={'combined_score':'weight'})
 
 # Adjacency matrix
 n_nodes = len(nodes_idx)
 adjacency = np.zeros((n_nodes, n_nodes), dtype=float)
 
-for idx, row in edges_weighted.iterrows():
+for idx, row in edges.iterrows():
     i, j = int(row.node_idx), int(row.node_idx_2)
-    adjacency[i, j] = row.weight
-    adjacency[j, i] = row.weight
+    adjacency[i, j] += row.combined_score
+    adjacency[j, i] += row.combined_score
+    
+sigma = adjacency.std()
+heat_kernel = lambda x: np.exp(-(1/x)**2/(2*sigma^2))
+heat_kernel_v = np.vectorize(heat_kernel)
+adjacency_w = heat_kernel_v(adjacency)
 
 save_npz("adjacency_sparse.npz", csr_matrix(adjacency))
