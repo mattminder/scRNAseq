@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from scipy import sparse
 
+
 class GeneNetworkPCA:
     """ Data transformation based on a gene network constructed from a protein interaction
     network.
@@ -199,6 +200,7 @@ class GeneNetworkPCA:
         x_transform = self._fit(x, column_labels_path)
         return x_transform
         
-    
+    def compute_eigdec(self):
+        self._check_fourier_properties('U')
         
     
