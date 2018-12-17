@@ -9,18 +9,19 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 import torch.utils.data as utils
-from neural_net import NeuralNet
+from helpers.neural_net import NeuralNet
 
-def nn_train(x_train, y_train, classif_folder, lr = 7e-2, reg = 2e-10, momentum = 0.95, epochs = 10):
+
+def nn_train(x_train, y_train, classif_folder, lr=7e-2, reg=2e-10, momentum=0.95, epochs=10):
     """
     Trains the neural network and stores the solution in the classif_folder
     :param x_train: data to be trained on
     :param y_train: response (labels)
     :param classif_folder: folder in which all classifiers are saved
-    :param lr (optional): learning rate at the beginnig of the training
-    :param reg (optional): L2 regularization weight
-    :param momentum (optional): momentum of the optimization
-    :param epochs (optional): number of training epochs
+    :param lr: (optional) learning rate at the beginning of the training
+    :param reg: (optional) L2 regularization weight
+    :param momentum: (optional) momentum of the optimization
+    :param epochs: (optional) number of training epochs
     :return: Nothing
     """
     
@@ -29,27 +30,26 @@ def nn_train(x_train, y_train, classif_folder, lr = 7e-2, reg = 2e-10, momentum 
     traindataset = utils.TensorDataset(X_train, y_train)
     trainloader = utils.DataLoader(traindataset, batch_size=100, shuffle=True)
 
-
     # Initialization of neural net
     net = NeuralNet(n_input_channels=X_train.shape[1])
     criterion = torch.nn.CrossEntropyLoss()
 
     # Training and validation
-    steps = 0
     for e in range(epochs):
-        lr*0.01**(e/epochs) # Learning rate decay, starting from lr given
-        optimizer = torch.optim.SGD(net.parameters(), lr = lr, weight_decay = reg, momentum = momentum)
+        learn_rate = lr*0.01**(e/epochs) # Learning rate decay, starting from lr given
+        optimizer = torch.optim.SGD(net.parameters(), lr=learn_rate, weight_decay=reg, momentum=momentum)
         for data, labels in iter(trainloader):
-            steps += 1
-            #transform inputs and outputs into Variable 
+            print('hallo')
+            # transform inputs and outputs into Variable
             inputs, targets = Variable(data), Variable(labels)
 
-            #set gradient to zero
+            # set gradient to zero
             optimizer.zero_grad()
 
             # forward pass
             out = net.forward(inputs)
-            
+
+            print(out)
             loss = criterion(out, targets)
             loss.backward()
             optimizer.step()
@@ -63,9 +63,9 @@ def nn_predict(X, classif_path, result_file_np=None, result_file_csv=None):
     """
     Predicts the class for new data with a trained neural network
     :param X: data to predict class on
-    :param classif_folder: path to trained neural net (should have .pt extension)
-    :param result_file_np (optional): path to where the predictions should be saved as numpy array, not saved if none given
-    :param result_file_csv (optional): path to where the predictions should be saved as csv file, not saved if none given
+    :param classif_path: path to trained neural net (should have .pt extension)
+    :param result_file_np: (optional) path to where the predictions should be saved as numpy array, not saved if none given
+    :param result_file_csv: (optional) path to where the predictions should be saved as csv file, not saved if none given
     :return: numpy array with the predictions
     """
     # Predict

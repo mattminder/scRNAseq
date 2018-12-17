@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 # Import protein interaction network
 protein_data = pd.read_csv('../../data/protein_links.txt', sep=' ')
 # Format protein names (keep only ID)
-protein_data[['protein1','protein2']] = protein_data[['protein1','protein2']].apply(lambda x: x.str.slice(13,24))
+protein_data[['protein1','protein2']] = protein_data[['protein1', 'protein2']].apply(lambda x: x.str.slice(13,24))
 # Convert ID to int
-protein_data[['protein1','protein2']] = protein_data[['protein1','protein2']].astype(int)
+protein_data[['protein1','protein2']] = protein_data[['protein1', 'protein2']].astype(int)
 
 # Import gene names, ids and transcribed protein ids
 gene_data = pd.read_csv('../../data/gene_name_transcript_protein_id.txt', sep=',')

@@ -1,5 +1,6 @@
 import pickle as pkl
-from nn_helpers import nn_predict
+from helpers.nn_helpers import nn_predict
+
 
 def predict_from_files(x, classif_path, classif_type = 'skl'):
     """
@@ -24,15 +25,16 @@ def predict_from_files(x, classif_path, classif_type = 'skl'):
     
     if classif_type == 'nn':
         return nn_predict(x)
-        
 
 
-def transform_from_files(x, transf_path, transf_type='skl'):
+def transform_from_files(x, transf_path, transf_type='skl',
+                         gene_name_path='../network/genes_in_data.csv'):
     """
     Uses input numpy array x, transforms it according to transformation in pickled object in path transf_path
     :param x: Input numpy array to transform
     :param transf_path: Path to transformation object
     :param transf_type: Type of transformation. 'skl' for sklearn-based transformation, i.e. pca and nolowvar.
+    :param gene_name_path: Only needed for transf_type == 'network', specifies path to gene annotation
     :return: Transformed x
     """
     if transf_type == 'skl':
@@ -45,4 +47,4 @@ def transform_from_files(x, transf_path, transf_type='skl'):
         transf_file = open(transf_path, "rb")
         transf = pkl.load(transf_file)
         transf_file.close()
-        return transf.fit_transform(x, '../network/genes_in_data.csv')
+        return transf.fit_transform(x, gene_name_path)
