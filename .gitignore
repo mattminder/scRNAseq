@@ -2,10 +2,19 @@
 # Feel free to add your useless shizzle
 # Files
 /src/network/adjacency.npy
-
+/literature
 # Large data files
 /data/
 *.npy
+
+# Report trash
+*.log
+*.aux
+*.bbl
+*.blg
+*.out
+report/report_project2.pdf
+*.synctex.gz
 
 # Pycache
 *.cypthon-36
