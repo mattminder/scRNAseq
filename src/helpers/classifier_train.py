@@ -5,6 +5,7 @@ import pickle as pkl
 import sklearn.ensemble as ens
 from sklearn import linear_model as lm
 import numpy as np
+from nn_helpers import nn_train
 
 
 def all_models_train(train_x, train_y, classif_folder):
@@ -87,7 +88,19 @@ def all_models_train(train_x, train_y, classif_folder):
     savefile = open(classif_folder + 'log_lasso_classif.pkl', 'wb')
     pkl.dump(lasso_classif, savefile)
     savefile.close()
-
+    
+    
+    
+    # NEURAL NET
+    print('neural net')
+    nn_train(train_x,           
+             train_y,
+             classif_folder,
+             lr = 6.6e-2,         # Best learning rate during validation
+             reg = 2.2e-10,       # Best regularization during validation
+             momentum = 0.95,
+             epochs = 10)
+    # Automatically saved in the function
 
 
 
