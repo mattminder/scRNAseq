@@ -74,10 +74,10 @@ for idx, row in edges.iterrows():
     
 dist = lambda x: 1/x
 dist_v = np.vectorize(dist)
-adjacency = dist_v(adjacency)
-sigma = adjacency.std()
-heat_kernel = lambda x: np.exp(-(x)**2/(2*sigma^2))
+adjacency[adjacency != 0] = dist_v(adjacency[adjacency != 0])
+sigma = adjacency[adjacency!=0].std()
+heat_kernel = lambda x: np.exp(-(x)**2/(2*sigma**2))
 heat_kernel_v = np.vectorize(heat_kernel)
-adjacency = heat_kernel_v(adjacency)
+adjacency[adjacency != 0] = heat_kernel_v(adjacency[adjacency != 0])
 
 save_npz("adjacency_sparse.npz", csr_matrix(adjacency))
