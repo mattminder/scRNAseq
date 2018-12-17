@@ -41,8 +41,13 @@ Within this report, we compare the prediction performance of stem cell classifie
 \subsection{Experimental Setup}
 For the entire analysis, 17 publicly available datasets were used [CITATION]. These data sets were split into three sets, train set (eleven data sets), test set (three data sets) and the generalization train set (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on the training set, and their predictive performance was assessed in terms of accuracy on the test set. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in the generalization train set. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed on the test set. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
 For the basic classifiers, four different machine learning methods were used on data untransformed data, as well as data transformed with four different dimensionality reduction strategies. 
-\subsection{Dataset Preparation}
 
+\subsection{Dataset Preparation}
+The genes retained for our analysis were selected as follows: For all eleven sets within our train set, we determined whether they contained stem cells, non-stem cells or both. Then, the genes represented in all sets with stem-cells was combined with the genes represented in all sets containing non-stem cells. The reasoning behind this was that in this way, genes that are only expressed in one category of cells, stem or non-stem, are retained while minimizing the number of genes with missing values. This resulted in 13'600 genes retained for further analysis.
+\par
+For datasets in which a necessary gene isn't represented, we set the gene expression to zero. This is based on the heuristic that such genes are lowly expressed in these datasets, as otherwise they would have been sufficiently measured to be retained in the final dataset. 
+\par
+After retaining only the necessary genes and filling missing values with zero, we normalized the expression values to transcripts per million before transforming the values with $ln(1+x)$. This is standard procedure for scRNA-seq data. All subsequent transformations and training steps was based on data in this format. 
 \subsection{Dimensionality Reductions}
 The dimensionality of the data was reduced using conventional Principal Component Analysis (PCA) and two methods based on graph signal processing (GSP) on a graph constructed using a protein interaction network.
 \par
