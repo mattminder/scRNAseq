@@ -3,7 +3,7 @@ from helpers.nn_helpers import nn_predict
 from network.gene_network import load_GeneNetworkPCA
 import numpy as np
 import glob
-
+import xgboost as xgb
 
 def predict_all_methods(x, classif_folder, save_folder=None, save_type='npy', ret=False):
     """
@@ -45,7 +45,7 @@ def predict_all_methods(x, classif_folder, save_folder=None, save_type='npy', re
         fh = open(classif_folder+'xgboost_classif.pkl', 'rb')
         classif = pkl.load(fh)
         fh.close()
-        predictions.append(classif.predict(x))
+        predictions.append(classif.predict(xgb.DMatrix(x)))
         classifiers.append('xgboost')
 
     except FileNotFoundError:
@@ -154,5 +154,10 @@ def load_true_pred(folder):
     filelist = glob.glob(folder+'*.npy')
     tmp = []
     for i in range(len(filelist)):
-        tmp.append(np.load(filelist[i])[:, 1])
+        arr = np.load(filelist[i])
+
+        if arr.ndim == 1:
+            tmp.append(arr)
+        elif arr.ndim == 2:
+            tmp.append(arr[:, -1]) # Take last column for 2d array
     return np.stack(tmp, axis=1)
