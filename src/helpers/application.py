@@ -113,7 +113,7 @@ def transform_from_files(x, transf_path, transf_type='skl',
         transf_file = open(transf_path, "rb")
         transf = pkl.load(transf_file)
         transf_file.close()
-        return transf.fit_transform(x)
+        return transf.transform(x)
     
     if transf_type == 'network':
         transf_file = open(transf_path, "rb")
@@ -143,15 +143,17 @@ def transform_multiple(x, transf_paths, transf_types, gene_name_path='../network
     return out
 
 
-def load_true_pred(folder):
+def load_true_pred(folder, ret_filelist = False, stack=True):
     """
     Opens all numpy arrays in folder, extracts second column containing true predictions,
     then stacks them to form an input for training a nested model.
     Make sure that the specified folder only contains numpy arrays that were created with predict_all_methods
     :param folder: base folder with all files to be later bound
+    :param ret_filelist: whether to return filelist as well
+    :param stack: whether to stack result to an npy array (True), or to just return a list
     :return: Stacked array of true predictions of all numpy arrays in a folder
     """
-    filelist = glob.glob(folder+'*.npy')
+    filelist = glob.glob(folder+'*/*.npy') + glob.glob(folder+'*.npy')
     tmp = []
     for i in range(len(filelist)):
         arr = np.load(filelist[i])
@@ -160,4 +162,28 @@ def load_true_pred(folder):
             tmp.append(arr)
         elif arr.ndim == 2:
             tmp.append(arr[:, -1]) # Take last column for 2d array
-    return np.stack(tmp, axis=1)
+
+    if stack:
+        out = np.stack(tmp, axis=1)
+    else:
+        out = tmp
+
+    if ret_filelist:
+        return out, filelist
+    else:
+        return out
+
+
+def binarize(prob, thresh=.5):
+    """
+    Binarizes output labels to 0 or 1
+    :param prob: Input positive probability
+    :param thresh: Cutoff threshold
+    :return: Binarized data, to 0 and 1
+    """
+    out = np.copy(prob)
+    out[out>thresh] = 1
+    out[out<=thresh] = 0
+    return out
+
+

@@ -6,10 +6,11 @@ DATA_FOLDER = '../../data'
 
 print("Load Data")
 ind_train_preds = load_true_pred(PRED_FOLDER + 'ind_train/')
+test_preds = load_true_pred(PRED_FOLDER + 'test/')
 
-print("Train Model")
-predict_all_methods(ind_train_preds, CLASSIF_FOLDER, save_folder=PRED_FOLDER+'nested/ind_train/',
+print("Predict")
+predict_all_methods(ind_train_preds, CLASSIF_FOLDER, save_folder=PRED_FOLDER+'ind_train/nested/',
                     save_type='both', ret=False)
-predict_all_methods(ind_train_preds, CLASSIF_FOLDER, save_folder=PRED_FOLDER+'nested/test/',
+predict_all_methods(test_preds, CLASSIF_FOLDER, save_folder=PRED_FOLDER+'test/nested/',
                     save_type='both', ret=False)
 
