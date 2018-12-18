@@ -92,7 +92,11 @@ In our GBF algorithm, the graph signal is projected only onto the $K$ eigenvecto
 We used the the $K$ lowest and highest frequencies to transform the original data. GBF potentially mitigates issues due to batch effects that might appear as a low-frequency component in the graph signal. Similarly, the presence of drop-outs might manifest itself as a high-frequency component and thus be filtered when considering only low-frequency eigenvectors.
 
 \subsection{Machine Learning Methods}
-Within this project, we applied four different types of classifiers. 
+Within this project, we applied four different types of classifiers: Logistic regression, random forest, neural net and xg boost.
+\par
+
+The neural net consists of six fully connected layers used as classifier into the two classes not stem cell and stem cell. The probabilities are then computed using a softmax classifier. The net was trained with stochastic gradient descent on the cross entropy loss in ten epochs. In order to find the best learning rate and regularization constant, validation on part of the training set was conducted for different parameters during one epoch each. The best learning rate and weight decay were retained after two refinements. During the training of the neural net, a learning weight decay was used to avoid oscillating across the optimum.
+
 
 \section*{Results}
 
