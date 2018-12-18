@@ -51,7 +51,6 @@ For datasets in which a necessary gene isn't represented, we set the gene expres
 \par
 After retaining only the necessary genes and filling missing values with zero, we normalized the expression values to transcripts per million before transforming the values with $ln(1+x)$. This is standard procedure for scRNA-seq data. All subsequent transformations and training steps was based on data in this format. 
 
-
 \subsection{Dimensionality Reductions}
 The dimensionality of the data was reduced using conventional Principal Component Analysis (PCA) and two methods based on graph signal processing (GSP) on a graph constructed using a protein interaction network.
 \par
@@ -80,7 +79,7 @@ In our GBF algorithm, the graph signal is projected only onto the $K$ eigenvecto
 We used the the $K$ lowest and highest frequencies to transform the original data. GBF potentially mitigates issues due to batch effects that might appear as a low-frequency component in the graph signal. Similarly, the presence of drop-outs might manifest itself as a high-frequency component and thus be filtered when considering only low-frequency eigenvectors.
 
 \subsection{Machine Learning Methods}
-
+Within this project, we applied four different types of classifiers. 
 
 \section*{Results}
 
