@@ -8,6 +8,7 @@ Created on Wed Nov 21 17:09:05 2018
 from torch import nn
 import torch.nn.functional as F
 
+
 class NeuralNet(nn.Module):
     def __init__(self, n_input_channels=500, n_output=2):
         super().__init__()
@@ -16,7 +17,7 @@ class NeuralNet(nn.Module):
         self.fc3 = nn.Linear(n_input_channels*2, 200)
         self.fc4 = nn.Linear(200, 100)
         self.fc5 = nn.Linear(100, 20)
-        self.fc6 = nn.Linear(20,n_output)  
+        self.fc6 = nn.Linear(20, n_output)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))

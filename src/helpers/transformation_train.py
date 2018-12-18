@@ -62,12 +62,9 @@ def fit_networkPCA(train_x, transf_folder, network_folder, n_components=500, ret
                                   n_components=n_components, fourier_basis_path=fourier_basis_path,
                                   method=method, attenuation=attenuation)
     netw_pca_obj = netw_pca_obj.fit(train_x, gene_name_path)
-    if method == 'gs':
-        filename = 'netw_pca_gs_fit.txt'
-    elif method == 'gbf':
-        filename = 'netw_pca_gbf_'+attenuation+'fit.txt'
+    filename = 'netw_pca_'+method+'_'+attenuation+'.txt'
     savefile = open(transf_folder + filename, 'wb')
-    pkl.dump(netw_pca_obj, savefile)
+    netw_pca_obj.save(savefile)
     savefile.close()
     if ret:
         return netw_pca_obj

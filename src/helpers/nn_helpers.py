@@ -36,10 +36,10 @@ def nn_train(x_train, y_train, classif_folder, lr=7e-2, reg=2e-10, momentum=0.95
 
     # Training and validation
     for e in range(epochs):
+        print(e)
         learn_rate = lr*0.01**(e/epochs) # Learning rate decay, starting from lr given
         optimizer = torch.optim.SGD(net.parameters(), lr=learn_rate, weight_decay=reg, momentum=momentum)
         for data, labels in iter(trainloader):
-            print('hallo')
             # transform inputs and outputs into Variable
             inputs, targets = Variable(data), Variable(labels)
 
@@ -49,7 +49,6 @@ def nn_train(x_train, y_train, classif_folder, lr=7e-2, reg=2e-10, momentum=0.95
             # forward pass
             out = net.forward(inputs)
 
-            print(out)
             loss = criterion(out, targets)
             loss.backward()
             optimizer.step()

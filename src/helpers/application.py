@@ -1,5 +1,77 @@
 import pickle as pkl
 from helpers.nn_helpers import nn_predict
+from network.gene_network import load_GeneNetworkPCA
+import numpy as np
+import glob
+
+
+def predict_all_methods(x, classif_folder, save_folder=None, save_type='npy', ret=False):
+    """
+    Creates predictions based on data x using all classifiers in classif_folders
+    :param x: Train data
+    :param classif_folder: Folder containing all classifiers
+    :param save_folder: Folder to which predictions are saved, if specified
+    :param save_type: Whether to save predictions as csv ('csv') or numpy ('npy') array, or both ('both')
+    :param ret: Whether to return object
+    :return: List of numpy vectors of predictions, if ret=True
+    """
+    predictions = []
+    classifiers = []
+
+    # Log-Lasso
+    try:
+        fh = open(classif_folder+'log_lasso_classif.pkl', 'rb')
+        classif = pkl.load(fh)
+        fh.close()
+        predictions.append(classif.predict_proba(x))
+        classifiers.append('log_lasso')
+
+    except FileNotFoundError:
+        pass
+
+    # Random Forest
+    try:
+        fh = open(classif_folder+'randomForest_classif.pkl', 'rb')
+        classif = pkl.load(fh)
+        fh.close()
+        predictions.append(classif.predict_proba(x))
+        classifiers.append('randomForest')
+
+    except FileNotFoundError:
+        pass
+
+    # XG Boost
+    try:
+        fh = open(classif_folder+'xgboost_classif.pkl', 'rb')
+        classif = pkl.load(fh)
+        fh.close()
+        predictions.append(classif.predict(x))
+        classifiers.append('xgboost')
+
+    except FileNotFoundError:
+        pass
+
+    # Neural Network
+    try:
+        fh = open(classif_folder+'neuralNet.pt', 'rb')
+        fh.close()
+        predictions.append(nn_predict(x, classif_folder+'neuralNet.pt'))
+        classifiers.append('neuralNet')
+
+    except FileNotFoundError:
+        pass
+
+    if save_folder:
+        for i in range(len(classifiers)):
+            c = classifiers[i]
+            pred = predictions[i]
+            if save_type in ['csv', 'both']:
+                np.savetxt(save_folder + c + '_pred.csv', pred, delimiter=',')
+            if save_type in ['npy', 'both']:
+                np.save(save_folder + c + '_pred.npy', pred)
+
+    if ret:
+        return predictions, classifiers
 
 
 def predict_from_files(x, classif_path, classif_type = 'skl'):
@@ -33,7 +105,7 @@ def transform_from_files(x, transf_path, transf_type='skl',
     Uses input numpy array x, transforms it according to transformation in pickled object in path transf_path
     :param x: Input numpy array to transform
     :param transf_path: Path to transformation object
-    :param transf_type: Type of transformation. 'skl' for sklearn-based transformation, i.e. pca and nolowvar.
+    :param transf_type: Type of transformation. 'skl' for sklearn-based transformation, 'network' for network based
     :param gene_name_path: Only needed for transf_type == 'network', specifies path to gene annotation
     :return: Transformed x
     """
@@ -45,6 +117,42 @@ def transform_from_files(x, transf_path, transf_type='skl',
     
     if transf_type == 'network':
         transf_file = open(transf_path, "rb")
-        transf = pkl.load(transf_file)
+        netw_pca = load_GeneNetworkPCA(transf_file)
         transf_file.close()
-        return transf.fit_transform(x, gene_name_path)
+        return netw_pca.fit_transform(x, gene_name_path)
+
+
+def transform_multiple(x, transf_paths, transf_types, gene_name_path='../network/genes_in_data.csv'):
+    """
+    Uses input numpy array x, transforms it according to all transformations in pickled objects in list of
+    paths given by transf_paths. Returns list of transformed arrays.
+
+    :param x: Input numpy array to transform
+    :param transf_paths: List of paths to transformation objects
+    :param transf_types: List of type of transformation. 'skl' for sklearn-based transformation, 'network' for
+    network based
+    :param gene_name_path: specifies path to gene annotation, needed if at least one transf_types is 'network'
+    :return: List of transformed x
+    """
+    out = []
+    for i in range(len(transf_paths)):
+        path = transf_paths[i]
+        transf_type = transf_types[i]
+        out.append(transform_from_files(x, path, transf_type, gene_name_path))
+
+    return out
+
+
+def load_true_pred(folder):
+    """
+    Opens all numpy arrays in folder, extracts second column containing true predictions,
+    then stacks them to form an input for training a nested model.
+    Make sure that the specified folder only contains numpy arrays that were created with predict_all_methods
+    :param folder: base folder with all files to be later bound
+    :return: Stacked array of true predictions of all numpy arrays in a folder
+    """
+    filelist = glob.glob(folder+'*.npy')
+    tmp = []
+    for i in range(len(filelist)):
+        tmp.append(np.load(filelist[i])[:, 1])
+    return np.stack(tmp, axis=1)

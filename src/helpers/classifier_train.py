@@ -15,7 +15,7 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
     :param train_x: x set
     :param train_y: response
     :param classif_folder: folder in which all classifiers are saved
-    :param models: Takes 'all', 'lasso', 'rf', 'xgboost', 'nnet'. Determines which models are to be trained.
+    :param models: Takes 'all', 'lasso', 'rf', 'xgboost', 'nnet', 'no_nnet'. Determines which models are to be trained.
     :return: Nothing
     """
     train_y_zeroone = np.copy(train_y)
@@ -23,7 +23,7 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
     train_y[train_y == 0] = -1
 
     # XGBOOST
-    if models in ['all', 'xgboost']:
+    if models in ['all', 'xgboost', 'no_nnet']:
         # Split into test and validation set
         train_x_split, val_x, train_y_split, val_y = train_test_split(train_x, train_y_zeroone,
                                                                       test_size=0.2, random_state=123)
@@ -52,10 +52,8 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
         pkl.dump(xgboost_classif, savefile)
         savefile.close()
 
-
-
     # RANDOM FOREST
-    if models in ['all', 'rf']:
+    if models in ['all', 'rf', 'no_nnet']:
 
         print('random forest')
 
@@ -75,7 +73,7 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
 
 
     # LOGISTIC LASSO
-    if models in ['all', 'lasso']:
+    if models in ['all', 'lasso', 'no_nnet']:
         print('logistic lasso')
         lasso_classif = lm.LogisticRegressionCV(penalty='l1',     # Lasso regularization
                                                 Cs=40,            # Size of grid for parameter search
@@ -100,7 +98,7 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
     if models in ['all', 'nnet']:
         print('neural net')
         nn_train(train_x,
-                 train_y,
+                 train_y_zeroone,
                  classif_folder,
                  lr=6.6e-2,         # Best learning rate during validation
                  reg=2.2e-10,       # Best regularization during validation

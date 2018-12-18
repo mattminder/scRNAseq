@@ -8,6 +8,7 @@ Created on Sat Dec 15 12:13:44 2018
 import numpy as np
 import pandas as pd
 from scipy import sparse
+import pickle as pkl
 
 
 class GeneNetworkPCA:
@@ -35,6 +36,8 @@ class GeneNetworkPCA:
         # Set adjacency matrix and pca method
         self.method = method
         self.W = sparse.load_npz(W_path)
+        self.W_path = W_path
+        self.node_index_path = node_index_path
         
         if len(self.W.shape) != 2 or self.W.shape[0] != self.W.shape[1]:
             raise ValueError('W has incorrect shape {}'.format(self.W.shape))
@@ -43,6 +46,7 @@ class GeneNetworkPCA:
         if fourier_basis_path:
             self._U = np.load(fourier_basis_path[1])
             self._e = np.load(fourier_basis_path[0])
+            self.fourier_basis_path = fourier_basis_path
         
         # Setting Laplacian type in case of Fourier basis computation
         if lap_type not in ['combinatorial', 'normalized']:
@@ -117,6 +121,7 @@ class GeneNetworkPCA:
         print('Saving Fourier basis in CWD as {0} and {1}'.format(filename_val, filename_vec))
         np.save(filename_val, self._e)
         np.save(filename_vec, self._U)
+        self.fourier_basis_path = (filename_val, filename_vec)
       
     def _subset_in_network(self, column_labels):
         """Identifies the features of the input data that are present in the network
@@ -182,12 +187,11 @@ class GeneNetworkPCA:
         x_hat[:,self.cutoffs[1]:] = 0
         
         return x_hat @ eigenvecs.T
-        
-    
+
     def _fit(self, x, column_labels_path):
         """ Converts input signal x to a signal on the network nodes by mapping each 
         entry of x to a node using the column_labels and then applies the desired
-        transformation. Nodes that represnt genes that are not present in 
+        transformation. Nodes that represent genes that are not present in
         the input get 0"""
         column_labels = pd.read_csv(column_labels_path)
         
@@ -206,7 +210,7 @@ class GeneNetworkPCA:
             x_tf = self._gbf(signal)
         elif self.method == 'filter':
             x_tf = self._simple_filter(signal)
-            x_tf = x_tf[:,node2feature[:,0]]
+            x_tf = x_tf[:, node2feature[:, 0]]
         else:
             x_tf = signal
             
@@ -224,5 +228,20 @@ class GeneNetworkPCA:
         
     def compute_eigdec(self):
         self._check_fourier_properties('U')
+
+    def save(self, file):
+        pkl.dump([self.W_path, self.node_index_path, self.n_components, self.fourier_basis_path,
+                  self.method, self.attenuation, self.cutoffs, self.lap_type], file)
+
         
-    
+def load_GeneNetworkPCA(file):
+    """
+    Loads GeneNetworkPCA from file, as generated with save method
+    :param file: Open file, with read access
+    :return: Returns reconstructed GeneNetworkPCA object
+    """
+    lst = pkl.load(file)
+    return GeneNetworkPCA(lst[0], lst[1], lst[2], lst[3], lst[4], lst[5], lst[6], lst[7])
+
+
+
