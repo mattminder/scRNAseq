@@ -178,10 +178,10 @@ class GeneNetworkPCA:
         Does not reduce dimensions, just a filter)"""
         eigenvecs = self._check_fourier_properties('U')
         x_hat = x @ eigenvecs 
-        x_hat_filtered = np.zeros(len(x_hat))
-        x_hat_filtered[self.cutoffs[0]:self.cutoffs[1]] = x_hat[self.cutoffs[0]:self.cutoffs[1]]
+        x_hat[:,0:self.cutoffs[0]] = 0
+        x_hat[:,self.cutoffs[1]:] = 0
         
-        return x_hat_filtered @ eigenvecs.T
+        return x_hat @ eigenvecs.T
         
     
     def _fit(self, x, column_labels_path):
