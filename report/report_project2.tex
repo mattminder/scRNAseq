@@ -40,7 +40,7 @@ Within this report, we compare the prediction performance of different stem cell
 \section*{Methods}
 \subsection{Experimental Setup}
 For the entire analysis, 17 publicly available datasets were used [CITATION]. These data sets were split into three sets, train set (eleven data sets), test set (three data sets) and the generalization train set (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on the training set, and their predictive performance was assessed in terms of accuracy on the test set. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in the generalization train set. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed on the test set. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
-Different basic classifiers were trained on a total of eight data transformations described below, of which six are network-based. 
+Different basic classifiers were trained on a total of eight data transformations described below, six of which are network-based. 
 
 \subsection{Dataset Preparation}
 Cell type annotation was based on the clustering done in the original papers. All three sets consist only of cells which were determined as being stem or non-stem in order to avoid introducing a bias into the model. Notably, progenitors, endothelial and fibroblast cells were excluded from the analysis. For the train set, the cells were down-sampled to be of equal proportions from the three different germ layers, and within each germ layer 50\% stem and 50\% non-stem. This was chosen in order to avoid introducing a tissue-specific bias in determining stem-ness. 
@@ -79,26 +79,50 @@ After mapping the data onto the resulting graph, graph signal processing (GSP) c
  \par
 Graph sampling (GS) aims to find nodes where signal energy is the most concentrated for frequencies in the range $(f_{min}, f_{max})$. The \textit{local graph coherence} at node $i$ of order $k$ is defined as the square of the $i$-th entry of the $k$-th eigenvector $u_{ik}$ of the Laplacian, which is a measure for how localized the first $k$ Fourier modes are on node $i$ \cite{Puy2018}. By choosing the first $K$ indices $i$ that maximize $\Sigma_{k=f_{min}}^{f_{max}} u_{ik}^2$, the data can be reduced to the $K$ genes whose read-count information has the most value based on their location in the network for the chosen frequency range. In particular, we applied the GS algorithm for only low frequencies (below N/2) and only high frequencies (above N/2). 
 \par
-The idea behind graph-based filtering (GBF) is essentially to transform the data into the spectral domain and retain components above or below a certain frequency. The Graph Fourier Transform is given by
-\begin{equation}
-\boldsymbol{\hat{x}} = \boldsymbol{U}^T \boldsymbol{x}.
-\end{equation}
+The idea behind graph frequency sampling (GFS) is essentially to transform the data into the spectral domain and retain components above or below a certain frequency. The Graph Fourier Transform (GFT) and its inverse are given by
+\begin{align*}\label{equ:GFT}
+\boldsymbol{\hat{x}} &= \boldsymbol{U}^T \boldsymbol{x}\\
+\boldsymbol{x} &= \boldsymbol{U} \boldsymbol{\hat{x}}
+\end{align*} 
 \par
-In our GBF algorithm, the graph signal is projected only onto the $K$ eigenvectors associated to eigenvalues below or above a cut-off frequency, resulting in a $K$-dimensional signal. For example, choosing the $K$ lowest frequencies,
+In our GFS algorithm, the graph signal is projected only onto the $K$ eigenvectors associated to eigenvalues below or above a cut-off frequency, resulting in a $K$-dimensional signal $\boldsymbol{\hat{x}_{GFS}}$. For example, choosing the $K$ lowest frequencies,
 \begin{equation}
-\boldsymbol{\hat{x}_{GBF}} = \boldsymbol{U}[0:K]^T \boldsymbol{x}.
+\boldsymbol{\hat{x}_{GFS}} = \boldsymbol{U}[0:K]^T \boldsymbol{x}.
 \end{equation} 
 \par
-We used the the $K$ lowest and highest frequencies to transform the original data. GBF potentially mitigates issues due to batch effects that might appear as a low-frequency component in the graph signal. Similarly, the presence of drop-outs might manifest itself as a high-frequency component and thus be filtered when considering only low-frequency eigenvectors.
+We used the the $K$ lowest and highest frequencies to transform the original data. GFS potentially mitigates issues due to batch effects that might appear as a low-frequency component in the graph signal. Similarly, the presence of drop-outs might manifest itself as a high-frequency component and thus be filtered when considering only low-frequency eigenvectors.\\
+\par
+The GFT was also used to implement a simple low or pass rectangle filter of the data using the network. After transforming the data into a graph signal as described previously, the GFT is computed (Equation \ref{equ:GFT}). The components of the resulting spectrum that are above or below a cut-off frequency are set to zero. Subsequently, the inverse GFT given by is applied to obtain a filtered version of the original signal. While this process does not reduce the dimensionality of the data, it could provide insight on validity of the network creation process and reduce noise.
+\par
+In summary, 8 different methods are used to transform the data and reduce dimensionality: PCA, Graph sampling (LF and HF), Graph frequency sampling (LF and HF), Graph filtering (LF and HF) and a nested method that combines all the above.
 
 \subsection{Machine Learning Methods}
-Within this project, we applied four different types of classifiers: Logistic regression, random forest, neural net and xg boost.
+Within this project, we applied four different types of classifiers: Logistic regression, random forest, neural net and XGboost.
 \par
 
 The neural net consists of six fully connected layers used as classifier into the two classes not stem cell and stem cell. The probabilities are then computed using a softmax classifier. The net was trained with stochastic gradient descent on the cross entropy loss in ten epochs. In order to find the best learning rate and regularization constant, validation on part of the training set was conducted for different parameters during one epoch each. The best learning rate and weight decay were retained after two refinements. During the training of the neural net, a learning weight decay was used to avoid oscillating across the optimum.
 
 
 \section*{Results}
+
+The accuracies of the basic classifiers on the training set are summarized in Figure \ref{fig:train_acc} below.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.45\textwidth]{ind_train_perf.png}
+	\label{fig:train_acc}
+	\caption{Accuracy on training set of the basic classifiers}
+\end{figure}
+The following accuracies were obtained with all classifiers, including the nested classifier that was previously trained on the generalized training set.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.45\textwidth]{test_perf.png}
+	\label{fig:test_acc}
+	\caption{Accuracy on the test set of all classifiers }
+\end{figure}
+On the figures above we can observe that the impact of the choice data transformation is significant. Overall, the best results were achieved using conventional PCA. Accuracies were similar for all four classifier with a maximum of 93.4\% with log lasso and in all cases better than the baseline model.
+ Classification accuracy is relatively poor for the GS and GFS transformations when choosing the low frequency components. GS transformed data yields largely inaccurate predictions with all classifiers and on train and test sets, which raises doubts concerning the feasibility of this method of dimensionality reduction. One probable cause for the low accuracy is the discrepancy of number of features in the data and number of nodes in the network. The GS algorithm selects a number of nodes among all the nodes present in the network, which includes genes that might not appear in the original data. Thus, it is possible that the transformed data contains a large number of constant zero counts corresponding to genes that were not in the original. GFS using high frequencies produces reasonably accurate predictions on the test set with XGBoost or random forest, yet worse than the baseline model or PCA. 
+\par  
+Predictions with graph-filtered data without dimensionality reduction on the test set are slightly more accurate than the baseline model, hence indicating that using a gene network based on protein interactions can be a valid preprocessing method.
 
 \section*{Conclusion}
 
