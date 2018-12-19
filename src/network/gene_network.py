@@ -161,6 +161,23 @@ class GeneNetworkPCA:
         
         return x[:,keep_nodes]
     
+    def _graph_sampling_refined(self, x, nodes):
+        """Graph sampling algorithm: Choose K eigenvalues with the highest
+        Graph weighted coherence (signal energy) in the frequency band
+        specified in interval.
+        x:  Signal on graph (numpy array with length n_nodes)"""
+    
+        eigenvecs = self._check_fourier_properties('U')
+        x_present_in_data = x[:,nodes]
+        # Computed weighted coherence in given interval
+        F_basis_sampled = eigenvecs[nodes,self.cutoffs[0]:self.cutoffs[1]]
+        graph_weighted_coherence_nodes = np.sum(np.power(F_basis_sampled, 2), axis=1)
+        
+        # Choose K nodes with the highest weighted coherence
+        keep_nodes = np.argsort(-graph_weighted_coherence_nodes)[0:self.n_components]
+        
+        return x_present_in_data[:,keep_nodes]
+    
     def _gbf(self, x):
         """Graph-based filtering: All eigenvectors with a eigenvalue below the
         cut-off frequency f_c span a subspace. The original data is then projected
@@ -208,6 +225,8 @@ class GeneNetworkPCA:
             x_tf = self._graph_sampling(signal)
         elif self.method == 'gbf':
             x_tf = self._gbf(signal)
+        elif self.method == 'gs-ref':
+            x_tf = self._graph_sampling_refined(signal, node2feature[:,0])
         elif self.method == 'filter':
             x_tf = self._simple_filter(signal)
             x_tf = x_tf[:, node2feature[:, 0]]
