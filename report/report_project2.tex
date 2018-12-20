@@ -175,28 +175,30 @@ All in all, we've created a valuable tool for the detection of stem cells. We've
 
 \begin{table}[H]
 	\centering
-	\begin{tabular}{rrrrrrrr}
-		\hline
-		77.0 &  76.7 &  76.1 & 71.4 & 57.6 & 73.1 & 72.4 & 77.2 \\
-		76.8 &  75.0 &  77.3 & 76.4 & 75.5 & 77.1 & 81.1 & 76.7 \\
-		77.5 &  77.7 &  77.0 & 76.4 & 68.9 & 74.2 & 79.3 & 76.9 \\
-		nan   & nan   & nan   & 75.7 & 55.5 & 55.5 & 77.5 & 77.7 \\
-		\hline
+	\begin{tabular}{r|rrrrrrrrrr}
+	\hline
+	& Base feat. & Filter HF & Filter LF & Filter HP + PCA & Filter LP + PCA & GFS HF & GFS LF&GS HF &GS LF & PCA  \\ \hline
+	 log lasso & 86.5 & 80.5 & 83.6 & 82.9 & 84.6 & 73.8 & 63.5 & 80.4 & 80.5 & 83.7 \\
+	 randomForest & 90.1 & 87.6 & 87.1 & 77.6 & 78.4 & 83.5 & 85.6 & 87.3 & 96.3 & 68.0 \\
+	 xgboost & 91.0 & 95.1 & 83.5 & 68.7 & 82.6 & 82.1 & 76.8 & 77.4 & 92.9 & 78.2 \\
+	 neural network & 78.6 & 80.0 & 80.0 & 87.8 & 83.9 & 78.4 & 50.0 & 78.8 & 85.8 & 87.6 \\
+	\hline
 	\end{tabular}
-	\caption{Accuracies on train set, raw data}
+	\caption{AUC on set B, raw data in \%}
 \end{table}
 
 \begin{table}[H]
 	\centering
-	\begin{tabular}{rrrrrrrrr}
-		\hline
-		66.4 &  83.8 &  80.0 & 65.6 & 59.9 & 77.2 & 66.4 & 85.4 & 53.4 \\
-		58.5 &  66.5 &  72.6 & 74.9 & 57.4 & 68.2 & 55.2 & 70.2 & 69.4 \\
-		73.9 &  73.8 &  68.5 & 75.3 & 62.2 & 72.9 & 69.0 & 85.1 & 70.0 \\
-		nan   & nan   & nan   & 59.1 & 48.3 & 48.3 & 66.4 & 84.7 & 52.6 \\
-		\hline
+	\begin{tabular}{r|rrrrrrrrrrr}
+	\hline
+	& Base feat. & Filter HF & Filter LF & Filter HP + PCA & Filter LP + PCA & GFS HF & GFS LF&GS HF &GS LF & PCA & nested \\ \hline
+	 log lasso & 68.7 & 91.0 & 83.8 & 94.0 & 91.2 & 73.1 & 63.4 & 84.0 & 79.5 & 92.5 & 71.3 \\
+	 randomForest & 70.9 & 76.3 & 80.7 & 71.7 & 64.4 & 80.2 & 59.2 & 75.9 & 58.0 & 79.8 & 88.1 \\
+	 xgboost & 83.8 & 84.4 & 82.8 & 75.6 & 79.2 & 82.1 & 70.8 & 82.5 & 79.7 & 93.4 & 88.4 \\
+	 neural network & 84.1 & 89.4 & 88.2 & 94.1 & 90.8 & 59.6 & 50.0 & 69.2 & 78.2 & 92.4 & 75.8 \\
+	\hline
 	\end{tabular}
-	\caption{Accuracies on test set, raw data}
+	\caption{AUC on set C, raw data in \%}
 \end{table}
 
 \begin{figure}[H]
