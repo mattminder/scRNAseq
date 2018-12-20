@@ -108,19 +108,20 @@ The neural net consists of six fully connected layers used as classifier into th
 The accuracies of the basic classifiers on the training set are summarized in Figure \ref{fig:train_acc} below.
 \begin{figure}
 	\centering
-	\includegraphics[width=0.45\textwidth]{ind_train_perf.png}
+	\includegraphics[width=0.45\textwidth]{train_accuracy.png}
 	\label{fig:train_acc}
 	\caption{Accuracy on training set of the basic classifiers}
 \end{figure}
 The following accuracies were obtained with all classifiers, including the nested classifier that was previously trained on the generalized training set.
 \begin{figure}
 	\centering
-	\includegraphics[width=0.45\textwidth]{test_perf.png}
+	\includegraphics[width=0.45\textwidth]{test_accuracy.png}
 	\label{fig:test_acc}
 	\caption{Accuracy on the test set of all classifiers }
 \end{figure}
-On the figures above we can observe that the impact of the choice data transformation is significant. Overall, the best results were achieved using conventional PCA. Accuracies were similar for all four classifier with a maximum of 93.4\% with log lasso and in all cases better than the baseline model.
- Classification accuracy is relatively poor for the GS and GFS transformations when choosing the low frequency components. GS transformed data yields largely inaccurate predictions with all classifiers and on train and test sets, which raises doubts concerning the feasibility of this method of dimensionality reduction. One probable cause for the low accuracy is the discrepancy of number of features in the data and number of nodes in the network. The GS algorithm selects a number of nodes among all the nodes present in the network, which includes genes that might not appear in the original data. Thus, it is possible that the transformed data contains a large number of constant zero counts corresponding to genes that were not in the original. GFS using high frequencies produces reasonably accurate predictions on the test set with XGBoost or random forest, yet worse than the baseline model or PCA. 
+On the figures above we can observe that the impact of the choice data transformation is significant. Overall, the best results were achieved using conventional PCA. Accuracies with PCA on the test were similar for all four classifier with a maximum of 93.4\% with log lasso and in all cases better than the baseline model.
+The accuracy of the predictions when using the network based GS and GFS transformations has a stronger dependence on classifier type and achieves lower accuracies overall than PCA. However, in certain cases, accuracies well superior to the baseline model with the same classifier were obtained, for example with GS HF and log lasso or GFS HF and random forest. In general, the results suggest that the performance is heavily dependent on the choice of classifier when using a network-based transformation, contrary to PCA.   
+
 \par  
 Predictions with graph-filtered data without dimensionality reduction on the test set are slightly more accurate than the baseline model, hence indicating that using a gene network based on protein interactions can be a valid preprocessing method.
 
@@ -130,5 +131,32 @@ Predictions with graph-filtered data without dimensionality reduction on the tes
 \bibliographystyle{IEEEtran}
 \bibliography{literature-project2}
 
+\beginsupplement
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{rrrrrrrr}
+\hline
+  77.0 &  76.7 &  76.1 & 71.4 & 57.6 & 73.1 & 72.4 & 77.2 \\
+  76.8 &  75.0 &  77.3 & 76.4 & 75.5 & 77.1 & 81.1 & 76.7 \\
+  77.5 &  77.7 &  77.0 & 76.4 & 68.9 & 74.2 & 79.3 & 76.9 \\
+ nan   & nan   & nan   & 75.7 & 55.5 & 55.5 & 77.5 & 77.7 \\
+\hline
+\end{tabular}
+	\caption{Accuracies on train set, raw data}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{rrrrrrrrr}
+\hline
+  66.4 &  83.8 &  80.0 & 65.6 & 59.9 & 77.2 & 66.4 & 85.4 & 53.4 \\
+  58.5 &  66.5 &  72.6 & 74.9 & 57.4 & 68.2 & 55.2 & 70.2 & 69.4 \\
+  73.9 &  73.8 &  68.5 & 75.3 & 62.2 & 72.9 & 69.0 & 85.1 & 70.0 \\
+ nan   & nan   & nan   & 59.1 & 48.3 & 48.3 & 66.4 & 84.7 & 52.6 \\
+\hline
+\end{tabular}
+	\caption{Accuracies on test set, raw data}
+\end{table}
 
 \end{document}
