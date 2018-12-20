@@ -14,7 +14,7 @@ def do_nested_train():
 
     base_classif_to_use = ['base_features', 'filter_and_pca_high-pass', 'filter_and_pca_low-pass',
                            'filter_highpass', 'filter_lowpass', 'gbf_highpass', 'gbf_lowpass',
-                           'gs-ref_highpass', 'gs-ref_lowpass', 'nested', 'pca']
+                           'gs-ref_highpass', 'gs-ref_lowpass', 'pca']
 
     print("Load Data")
     ind_train_preds = load_true_pred([PRED_FOLDER + 'ind_train/' + s + '/' for s in base_classif_to_use])

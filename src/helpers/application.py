@@ -180,6 +180,7 @@ def load_true_pred(folder, ret_filelist=False, stack=True):
 
         # Stack if wanted
         if stack:
+            assert tmp, 'List in ' + folder + ' is empty'
             out = np.concatenate(tmp, axis=1)
         else:
             out = tmp
@@ -198,6 +199,7 @@ def load_true_pred(folder, ret_filelist=False, stack=True):
 
         # Stack if wanted
         if stack:
+            assert tmp, 'List in ' + folder + ' is empty'
             out = np.stack(tmp, axis=1)
         else:
             out = tmp

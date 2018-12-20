@@ -23,6 +23,7 @@ from pred.performance_evaluation import do_performance_evaluation
 # --- LOADING ---
 DATA_FOLDER = '../../data/'
 
+""" 
 print('LOADING TRAIN')
 # Load Trainset
 train_x, gene_names_x, cell_names_x = load_data(DATA_FOLDER + 'train_data.csv.gz')
@@ -30,7 +31,7 @@ train_x = train_x[:, 1:]
 train_y, cell_names_y = load_response(DATA_FOLDER + 'response.csv.gz')
 
 
-"""
+
 print('TRAIN BASE')
 print('Base Features')
 do_base_features_train(train_x, train_y)
@@ -41,10 +42,9 @@ do_filter_and_pca_lowpass_train(train_x, train_y)
 print('Filter High')
 do_filter_highpass_train(train_x, train_y)
 print('Filter Low')
-"""
 do_filter_lowpass_train(train_x, train_y)
 
-"""
+
 print('GBF High')
 do_gbf_highpass_train(train_x, train_y)
 print('GBF Low')
@@ -55,7 +55,7 @@ print('GS Low')
 do_gs_ref_lowpass_train(train_x, train_y)
 print('PCA Train')
 do_pca_train(train_x, train_y)
-"""
+
 
 print('LOAD TEST AND IND TRAIN')
 # Load Generalization Set
@@ -75,8 +75,7 @@ joost_x = joost_x[:, 1:]
 
 print('PREDICT BASE')
 do_base_pred(train_x, ind_train_x, test_x, joost_x)
-print('Nested Train')
-do_nested_train()
+"""
 
 print('TRAIN NESTED')
 do_nested_train()

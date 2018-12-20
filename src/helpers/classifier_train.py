@@ -41,7 +41,7 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
                  'objective': 'binary:logistic',
                  'nthread': -1,
                  'booster': 'gbtree',
-                 'eval_metric': 'auc'}
+                 'eval_metric': 'error'}
 
         evallist = [(dval, 'eval'), (dtrain, 'train')]
 
@@ -61,7 +61,7 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
         # Train
         rf_classif = ens.RandomForestClassifier(random_state=161,
                                                 n_jobs=-1,
-                                                verbose=1,
+                                                verbose=0,
                                                 n_estimators=5000
                                                 ).fit(train_x,
                                                       train_y)
@@ -85,7 +85,6 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
                                                 random_state=896, # Random seed
                                                 n_jobs=-1,        # Use all CPU cores for computation
                                                 tol=0.005,        # Set tolerance for convergence of SGD
-                                                scoring=roc_auc_score # Score with auc
                                                 ).fit(train_x,
                                                       train_y)
 
@@ -93,9 +92,8 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
         savefile = open(classif_folder + 'log_lasso_classif.pkl', 'wb')
         pkl.dump(lasso_classif, savefile)
         savefile.close()
-    
-    
-    
+
+
     # NEURAL NET
     if models in ['all', 'nnet']:
         print('neural net')
@@ -105,7 +103,7 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
                  lr=6.6e-2,         # Best learning rate during validation
                  reg=2.2e-10,       # Best regularization during validation
                  momentum=0.95,
-                 epochs=10)
+                 epochs=40)
         # Automatically saved in the function
 
 
