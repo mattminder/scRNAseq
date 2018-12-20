@@ -24,5 +24,5 @@ x = nolowvar.transform(train_x)
 
 # Training Classifier
 print('Training Classifiers')
-all_models_train(x, train_y, CLASSIF_FOLDER, models='nnet')
+all_models_train(x, train_y, CLASSIF_FOLDER)
 

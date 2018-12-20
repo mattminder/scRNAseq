@@ -97,9 +97,15 @@ The GFT was also used to implement a simple low or pass rectangle filter of the 
 In summary, 8 different methods are used to transform the data and reduce dimensionality: PCA, Graph sampling (LF and HF), Graph frequency sampling (LF and HF), Graph filtering (LF and HF) and a nested method that combines all the above.
 
 \subsection{Machine Learning Methods}
-Within this project, we applied four different types of classifiers: Logistic regression, random forest, neural net and XGboost.
+Within this project, we applied four different types of classifiers: L1-regularized logistic regression, random forest, neural net and XGboost.
 \par
+Logistic regression classifiers were trained using the scikit-learn package (v0.20.1) in python. The hyper-parameter lamdba was chosen using the built in ten-fold cross-validation functionality using a grid-size of 40. The solution was found using stochastic average descent [CITATION], with a tolerance of 0.005. 
+\par
+The random forest classifier was also trained using scikit-learn. For training, 5000 fully grown, unpruned trees were constructed. At every split, $\sqrt{(n_{features})}$ were considered when looking for the best split.
+\par
+For training of XGBoost, the training set was split into a train (80\% of data) and a validation (20\% of data) set. 
 
+\par
 The neural net consists of six fully connected layers used as classifier into the two classes not stem cell and stem cell. The probabilities are then computed using a softmax classifier. The net was trained with stochastic gradient descent on the cross entropy loss in ten epochs. In order to find the best learning rate and regularization constant, validation on part of the training set was conducted for different parameters during one epoch each. The best learning rate and weight decay were retained after two refinements. During the training of the neural net, a learning weight decay was used to avoid oscillating across the optimum.
 
 

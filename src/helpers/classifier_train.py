@@ -6,6 +6,7 @@ import sklearn.ensemble as ens
 from sklearn import linear_model as lm
 import numpy as np
 from helpers.nn_helpers import nn_train
+from sklearn.metrics import roc_auc_score
 
 
 def all_models_train(train_x, train_y, classif_folder, models='all'):
@@ -83,7 +84,8 @@ def all_models_train(train_x, train_y, classif_folder, models='all'):
                                                 fit_intercept=True,
                                                 random_state=896, # Random seed
                                                 n_jobs=-1,        # Use all CPU cores for computation
-                                                tol=0.005         # Set tolerance for convergence of SGD
+                                                tol=0.005,        # Set tolerance for convergence of SGD
+                                                scoring=roc_auc_score # Score with auc
                                                 ).fit(train_x,
                                                       train_y)
 
