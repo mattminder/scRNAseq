@@ -17,19 +17,19 @@
 \title{CS-433 Machine Learning Project 2}
 
 \author{
-  Matthias Minder, Zora Oswald, Silvan Stettler\\
+	Matthias Minder, Zora Oswald, Silvan Stettler\\
 }
 
 \maketitle
 
 \begin{abstract}
-Abstract...
+	Abstract...
 \end{abstract}
 
 \section*{Introduction} 
 The recently developed method of single cell RNA sequencing (scRNA-seq) allows to measure the amount of RNA from a specific gene at the single cell resolution. This gives valuable insight into the properties and cellular function of single cells in a whole population of cells. High throughput methods allow to analyze thousands of cells simultaneously. scRNA-seq results in so-called read-count matrices (RCMs) which indicate the expression level of a given gene in a given cell.
 \par 
-The emergence of scRNA-seq has led to the discovery of many new cell populations based on their gene expression profile. The question thus naturally arises whether it would be possible to predict cell types using a machine learning approach. To this effect, classifiers can be trained on various publicly available data sets to infer cell types on a new data set. Of special interest is the detection and \textit{de novo} discovery of stem cells in tissues for which no stem cell population has been characterized. It is still unknown whether there exist specific biomarkers for multipotent stem cells allowing to identify them across tissues, which makes this problem attractive to solve. 
+The emergence of scRNA-seq has led to the discovery of many new cell populations based on their gene expression profile. The question thus naturally arises whether it would be possible to predict cell types using a machine learning approach. To this effect, classifiers can be trained on various publicly available data sets to infer cell types on a new data set \cite{Schwalie2017}. Of special interest is the detection and \textit{de novo} discovery of stem cells in tissues for which no stem cell population has been characterized. It is still unknown whether there exist specific biomarkers for multipotent stem cells allowing to identify them across tissues, which makes this problem attractive to solve. 
 \par
 However, several challenges are associated with working with scRNA-seq data. The three most predominant issues are the following: Differences in protocols and procedures give rise to batch effects, leading to substantial overall differences between datasets of different sources. Secondly, cell-type annotation is based on clusters of the dataset itself and thus depends on the  analysis and interpretation of the data. This may lead to biases when basing analysis on the annotated clusters. Thirdly, the obtained data is perturbed by so called drop-out events, where the read-counts for a given gene is measured to be zero, even if there were a signal. The result is that RCMs are very sparse. 
 \par
@@ -39,16 +39,16 @@ Within this report, we train different stem cell classifiers on multiple publish
 
 \section*{Methods}
 \subsection{Experimental Setup}
-For the entire analysis, 17 publicly available scRNA-seq datasets from mature \textit{mus musculus} were used [CITATION]. These data sets were split into three sets, set A (eleven data sets), set B (three data sets) and set C (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on set A, and their predictive performance was assessed in terms of the area under the receiver operating characteristic curve (AUC) on the set B and C. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in set B. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed and compared with the basic classifiers on set C. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
+For the entire analysis, 17 publicly available scRNA-seq datasets from mature \textit{mus musculus} were used \cite{Campbell2017, Chen2017, Dahlin2018,Dulken2017, Gokce2016, Kowalczyk2015, Haber2017, Hochgerner2018, Rodda2018, Schwalie2018, Nestorowa2016, Park2018, Shah2018, TabulaMuris2017, Tasic2016, Zeisel2018}. These data sets were split into three sets, set A (eleven data sets), set B (three data sets) and set C (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on set A, and their predictive performance was assessed in terms of the area under the receiver operating characteristic curve (AUC) on the set B and C. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in set B. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed and compared with the basic classifiers on set C. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
 Different basic classifiers were trained on a total of eight data transformations described below, six of which are network-based. 
 \begin{table}[H]
 	\centering
 	\begin{tabular}{|r|c|c|c|}
-	\hline
-	\textbf{Classifier type} & \textbf{Set A} & \textbf{Set B} & \textbf{Set C} \\ \hline
-	Basic & Training & Testing & Testing \\
-	Nested & - & Training & Testing \\
-	\hline
+		\hline
+		\textbf{Classifier type} & \textbf{Set A} & \textbf{Set B} & \textbf{Set C} \\ \hline
+		Basic & Training & Testing & Testing \\
+		Nested & - & Training & Testing \\
+		\hline
 	\end{tabular}
 	\caption{Use of datasets}
 \end{table}
@@ -62,8 +62,7 @@ For datasets in which a necessary gene isn't represented, we set the gene expres
 \par
 After retaining only the necessary genes and filling missing values with zero, we normalized the expression values to transcripts per million before transforming the values with $ln(1+x)$. This is standard procedure for scRNA-seq data. All subsequent transformations and training steps were based on data in this format. 
 
-\subsection{Gene network construction}
-
+\subsection{Gene Network Construction}
 Taking into account external information about the underlying structure is a way to reduce the influence of set specific batch effects. To this effect, we included a protein interaction network, which we then use as topology to process the expression signal. Protein interaction networks are representations of the physical and biochemical interaction between proteins in an organism. The protein interaction network was converted to a gene network by replacing proteins with the genes that encode them. 
 \par
 The protein interaction data that was used is available in the STRING database (\url{www.string-db.org}) \cite{Szklarczyk2016}. The weight of the edges between individual proteins, which form the nodes, are a measure of how confidently an interaction can be judged to be true. Mapping of genes to their proteins was done using the Ensembl database for \textit{mus musculus} (\url{www.ensembl.org}) \cite{Zerbino2017}. 
@@ -111,17 +110,15 @@ In total, 8 different data transformation methods were used and compared to a ba
 \subsection{Machine Learning Methods}
 Within this project, we applied four different types of classifiers to all our data transformations: L1-regularized logistic regression, random forest, neural networks and XGboost.
 \par
-Logistic regression classifiers were trained using the scikit-learn package (v0.20.1) in python. The regularization parameter was chosen using the built in ten-fold cross-validation functionality using a grid-size of 40. The solution was found using stochastic average descent [CITATION], with a tolerance of 0.005. 
+Logistic regression classifiers were trained using the scikit-learn package in python \cite{scikit-learn}. The regularization parameter was chosen to be the best in accuracy using the built in ten-fold cross-validation functionality using a grid-size of 40. The solution was found using stochastic average descent, with a tolerance of 0.005. 
 \par
 The random forest classifier was also trained using scikit-learn. For training, 5000 fully grown, unpruned trees were constructed. At every split, $\sqrt{n_{features}}$ were considered when looking for the best split.
 \par
-For training of XGBoost, the training set was split into a train (80\% of data) and a validation (20\% of data) set. 
+Training of XGBoost was done using the python package xgboost \cite{Chen:2016:XST:2939672.2939785}. In order to prevent overfitting, the best classifier was selected based on the best  accuracy on a validation set consisting of 20\% of the training data. A learning rate of 0.2 and a maximum tree depth of three. For all other parameters, default values were used.  
 \par
 The neural network consists of six fully connected layers used as classifier into the two classes not stem cell and stem cell. The probabilities are then computed using a softmax classifier. The network was trained with stochastic gradient descent on the cross entropy loss in ten epochs. In order to find the best learning rate and regularization constant, validation on part of the training set was conducted for different parameters during one epoch each. The best learning rate and weight decay were retained after two refinements. During the training of the neural network, a learning weight decay was used to avoid oscillating across the optimum.
 
-
 \section*{Results}
-
 The performance of each classifier was assessed using AUC.
 The AUC of the basic classifiers on set B are summarized in Figure \ref{fig:train_acc} below.
 \begin{figure}[H]
@@ -148,6 +145,9 @@ Based on the results of set B and C, PCA seems to be the most versatile dimensio
 
 \section*{Conclusion}
 
+
+
+
 %%% Bibliography
 \bibliographystyle{IEEEtran}
 \bibliography{literature-project2}
@@ -157,27 +157,28 @@ Based on the results of set B and C, PCA seems to be the most versatile dimensio
 \begin{table}[H]
 	\centering
 	\begin{tabular}{rrrrrrrr}
-\hline
-  77.0 &  76.7 &  76.1 & 71.4 & 57.6 & 73.1 & 72.4 & 77.2 \\
-  76.8 &  75.0 &  77.3 & 76.4 & 75.5 & 77.1 & 81.1 & 76.7 \\
-  77.5 &  77.7 &  77.0 & 76.4 & 68.9 & 74.2 & 79.3 & 76.9 \\
- nan   & nan   & nan   & 75.7 & 55.5 & 55.5 & 77.5 & 77.7 \\
-\hline
-\end{tabular}
+		\hline
+		77.0 &  76.7 &  76.1 & 71.4 & 57.6 & 73.1 & 72.4 & 77.2 \\
+		76.8 &  75.0 &  77.3 & 76.4 & 75.5 & 77.1 & 81.1 & 76.7 \\
+		77.5 &  77.7 &  77.0 & 76.4 & 68.9 & 74.2 & 79.3 & 76.9 \\
+		nan   & nan   & nan   & 75.7 & 55.5 & 55.5 & 77.5 & 77.7 \\
+		\hline
+	\end{tabular}
 	\caption{Accuracies on train set, raw data}
 \end{table}
 
 \begin{table}[H]
 	\centering
 	\begin{tabular}{rrrrrrrrr}
-\hline
-  66.4 &  83.8 &  80.0 & 65.6 & 59.9 & 77.2 & 66.4 & 85.4 & 53.4 \\
-  58.5 &  66.5 &  72.6 & 74.9 & 57.4 & 68.2 & 55.2 & 70.2 & 69.4 \\
-  73.9 &  73.8 &  68.5 & 75.3 & 62.2 & 72.9 & 69.0 & 85.1 & 70.0 \\
- nan   & nan   & nan   & 59.1 & 48.3 & 48.3 & 66.4 & 84.7 & 52.6 \\
-\hline
-\end{tabular}
+		\hline
+		66.4 &  83.8 &  80.0 & 65.6 & 59.9 & 77.2 & 66.4 & 85.4 & 53.4 \\
+		58.5 &  66.5 &  72.6 & 74.9 & 57.4 & 68.2 & 55.2 & 70.2 & 69.4 \\
+		73.9 &  73.8 &  68.5 & 75.3 & 62.2 & 72.9 & 69.0 & 85.1 & 70.0 \\
+		nan   & nan   & nan   & 59.1 & 48.3 & 48.3 & 66.4 & 84.7 & 52.6 \\
+		\hline
+	\end{tabular}
 	\caption{Accuracies on test set, raw data}
 \end{table}
+	
 
 \end{document}
