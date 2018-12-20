@@ -86,11 +86,11 @@ W_{ij} = \exp \{- \frac{1}{2}\frac{1}{(s_{ij} \sigma)^2}\}
 \subsection{Feature Creation through Graph Signal Processing}
 The scRNA-sec data can be transformed into a graph signal by assigning the count of expressed genes to the corresponding gene in the network, yielding a signal $\boldsymbol{x} \in \mathbb{R}^N$, where $N$ is the total number of nodes. Genes whose expression was not present as a feature in the scRNA-sec data are assigned zero. 
 \par
-After mapping the data onto the resulting graph, graph signal processing (GSP) can be leveraged to find a lower-dimensional manifold that embeds the original data, based purely on the constructed network. The two methods that were applied take advantage of the fact that the eigendecomposition of the $N \times N$ graph Laplacian matrix $\boldsymbol{L}$ forms the equivalent of a Fourier basis on a graph. Given the eigendecomposition $\boldsymbol{L} = \boldsymbol{U\Lambda U}^T$, $\boldsymbol{U} = [ \boldsymbol{u}_1 ... \boldsymbol{u}_N]$ are the $N$ Fourier basis vectors and the $N$ eigenvalues $\boldsymbol{\Lambda}$ represent the corresponding frequencies.
+After mapping the data onto the resulting graph, graph signal processing (GSP) can be leveraged to find a lower-dimensional manifold that embeds the original data, based purely on the constructed network. The two methods that were applied take advantage of the fact that the eigendecomposition of the $N \times N$ graph Laplacian matrix $\boldsymbol{L}$ forms the equivalent of a Fourier basis on a graph. Given the eigendecomposition $\boldsymbol{L} = \boldsymbol{U\Lambda U}^T$, $\boldsymbol{U} = [ \boldsymbol{u}_1 ... \boldsymbol{u}_N]$ are the $N$ Fourier basis vectors and the $N$ eigenvalues $\boldsymbol{\Lambda}$ represent the corresponding frequencies \cite{Puy2018}.
 \par
-Graph sampling (GS) is a way to identify genes which are of particular importance to the network. In particular, it identifies nodes where signal energy is the most concentrated for frequencies in the range $(f_{min}, f_{max})$. The \textit{local graph coherence} at node $i$ of order $k$ is defined as the square of the $i$-th entry of the $k$-th eigenvector $u_{ik}$ of the Laplacian, which is a measure for how localized the first $k$ Fourier modes are on node $i$ \cite{Puy2018}. By choosing the first $K$ indices $i$ that maximize $\Sigma_{k=f_{min}}^{f_{max}} u_{ik}^2$, the data can be reduced to the $K$ genes whose read-count information has the most value based on their location in the network for the chosen frequency range. In particular, we applied the GS algorithm for only low frequencies (below $\frac{N}{2}$) and only high frequencies (above $\frac{N}{2}$). 
+Graph sampling (GS) is a way to identify genes which are of particular importance to the network. In particular, it identifies nodes where signal energy is the most concentrated for frequencies in the range $(f_{min}, f_{max})$ \cite{Menoret2017}. The \textit{local graph coherence} at node $i$ of order $k$ is defined as the square of the $i$-th entry of the $k$-th eigenvector $u_{ik}$ of the Laplacian, which is a measure for how localized the first $k$ Fourier modes are on node $i$ \cite{Puy2018}. By choosing the first $K$ indices $i$ that maximize $\Sigma_{k=f_{min}}^{f_{max}} u_{ik}^2$, the data can be reduced to the $K$ genes whose read-count information has the most value based on their location in the network for the chosen frequency range. In particular, we applied the GS algorithm for only low frequencies (below $\frac{N}{2}$) and only high frequencies (above $\frac{N}{2}$). 
 \par
-The idea behind graph frequency sampling (GFS) is essentially to transform the data into the spectral domain and retain components above or below a certain frequency. The Graph Fourier Transform (GFT) $\boldsymbol{\hat{x}}$ of a signal $\boldsymbol{x}$ and its inverse are given by
+The idea behind graph frequency sampling (GFS) is essentially to transform the data into the spectral domain and retain components above or below a certain frequency \cite{Rui2016}. The Graph Fourier Transform (GFT) $\boldsymbol{\hat{x}}$ of a signal $\boldsymbol{x}$ and its inverse are given by
 \begin{align}\label{equ:GFT}
 \boldsymbol{\hat{x}} &= \boldsymbol{U}^T \boldsymbol{x}\\ \label{equ:iGFT}
 \boldsymbol{x} &= \boldsymbol{U} \boldsymbol{\hat{x}}
@@ -103,10 +103,9 @@ In the GFS algorithm, the graph signal is projected only onto the $K$ eigenvecto
 We used both the $K$ lowest and highest frequencies separately to transform the original data. GFS using high frequencies (HF) potentially mitigates issues due to batch effects that might appear as a low-frequency component in the graph signal. Similarly, the presence of drop-outs might manifest itself as a high-frequency component and thus be filtered when considering only low-frequency (LF) eigenvectors.
 \par
 The GFT was also used to implement graph filtering with a simple low or pass rectangle filter in the graph spectral domain. After transforming the data into a graph signal as described previously, the GFT is computed (Equation \ref{equ:GFT}). The components of the resulting spectrum that are above or below a cut-off frequency are set to zero. Subsequently, the inverse GFT (Equation \ref{equ:iGFT}) is applied to obtain a filtered version of the original signal. While this process does not reduce the dimensionality of the data, it could provide insight on validity of the network creation process and reduce noise.
-\par
 
 \subsection{Data Transformations}
-In summary, 8 different methods are used to transform the data and reduce dimensionality: PCA, Graph sampling (LF and HF), Graph frequency sampling (LF and HF), Graph filtering (LF and HF) and a nested method that combines all the above.
+In total, 9 different data transformation methods were used and compared to a baseline model. The baseline model for each of the four classifier is obtained by removing features with variance smaller than 0.1 from the raw data and then training the classifier in question on the remaining features. The data transformation methods that were tested are PCA, Graph sampling (LF and HF), Graph frequency sampling (LF and HF), Graph filtering (LF and HF), Graph filtering (LF and HF) followed by PCA, and a nested method that combines all the above. Graph filtering (LF and HF) do not reduce the dimensionality of the data. For PCA, the number of components was chosen to be $K = 500$ based on the explained variance proportion, which is around 50\% for 500 components (see Figure \ref{fig:explvar}). For the other dimensionality reduction methods that are based on the network, also 500 components were chosen for consistency.
 
 \subsection{Machine Learning Methods}
 Within this project, we applied four different types of classifiers to all our data transformations: L1-regularized logistic regression, random forest, neural networks and XGboost.
@@ -117,7 +116,7 @@ The random forest classifier was also trained using scikit-learn. For training, 
 \par
 Training of XGBoost was done using the python package xgboost \cite{Chen:2016:XST:2939672.2939785}. In order to prevent overfitting, the best classifier was selected based on the best  accuracy on a validation set consisting of 20\% of the training data. A learning rate of 0.2 and a maximum tree depth of three. For all other parameters, default values were used.  
 \par
-The neural network consists of fully connected layers alternating with ReLU activation functions. It classifies into two classes (non-stem or stem cell) and returns the probabilities using a softmax classifier. Six layers were used for the dimensionality reduced data. Due to a lack of working memory, a hidden layer fc0 with 500 nodes was added at the front of the network for the data with full dimensionality. This allows us to compare the addition of a layer with 500 nodes to a PCA of the same number of dimensions. The architecture is shown in Table \ref{tab:ArchitectureNN} below.
+The neural network consists of fully connected layers alternating with ReLU activation functions using PyTorch \cite{paszke2017automatic}. It classifies into two classes (non-stem or stem cell) and returns the probabilities using a softmax classifier. Six layers were used for the dimensionality reduced data. Due to a lack of working memory, a hidden layer fc0 with 500 nodes was added at the front of the network for the data with full dimensionality. This allows us to compare the addition of a layer with 500 nodes to a PCA of the same number of dimensions. The architecture is shown in Table \ref{tab:ArchitectureNN} below.
 
 \begin{table}[H]
 	\centering
@@ -197,6 +196,13 @@ All in all, we've created a valuable tool for the detection of stem cells. We've
 	\end{tabular}
 	\caption{Accuracies on test set, raw data}
 \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{pca_explvar.png}
+	\caption{Explained variance as a function of the number of components chosen for PCA}
+	\label{fig:explvar}
+\end{figure}
 	
 
 \end{document}
