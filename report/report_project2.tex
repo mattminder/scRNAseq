@@ -39,7 +39,7 @@ Within this report, we train different stem cell classifiers on multiple publish
 
 \section*{Methods}
 \subsection{Experimental Setup}
-For the entire analysis, 17 publicly available datasets were used [CITATION]. These data sets were split into three sets, set A (eleven data sets), set B (three data sets) and set C (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on set A, and their predictive performance was assessed in terms of the area under the receiver operating characteristic curve (AUC) on the set B and C. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in set B. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed and compared with the basic classifiers on set C. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
+For the entire analysis, 17 publicly available scRNA-seq datasets from mature \textit{mus musculus} were used [CITATION]. These data sets were split into three sets, set A (eleven data sets), set B (three data sets) and set C (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on set A, and their predictive performance was assessed in terms of the area under the receiver operating characteristic curve (AUC) on the set B and C. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in set B. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed and compared with the basic classifiers on set C. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
 Different basic classifiers were trained on a total of eight data transformations described below, six of which are network-based. 
 \begin{table}[H]
 	\centering
@@ -64,75 +64,77 @@ After retaining only the necessary genes and filling missing values with zero, w
 
 \subsection{Gene network construction}
 
-Taking into account external information about the underlying structure is another way to reduce the influence of set specific batch effects. To this effect, we included a protein interaction network, which we then use as topology to process the expression signal. Protein interaction networks are representations of the physical and biochemical interaction between proteins in an organism. By linking proteins with the genes encoding them, a protein interaction network can be converted to a gene network. 
+Taking into account external information about the underlying structure is a way to reduce the influence of set specific batch effects. To this effect, we included a protein interaction network, which we then use as topology to process the expression signal. Protein interaction networks are representations of the physical and biochemical interaction between proteins in an organism. The protein interaction network was converted to a gene network by replacing proteins with the genes that encode them. 
 \par
-In the protein interaction network used here, the weight of the edges between individual proteins, which form the nodes, are a measure of how confidently an interaction can be judged to be true. The protein interaction data that was used is available in the STRING database (\url{www.string-db.org}) \cite{Szklarczyk2016}. By replacing each protein in the network with the gene that encodes it, a gene network can be created. The genome along with the corresponding expressed proteins for \textit{mus musculus} are available in the Ensembl database (\url{www.ensembl.org}) \cite{Zerbino2017}. For the creation of our network, only the proteins that could be associated to an expressing gene were kept.
-Self-loops that resulted from genes whose expression produces multiple proteins and isolated nodes (no link to another node) were removed, yielding a network with 20330 genes forming nodes that are connected by 11'856'336 edges. It has to be mentioned that the gene network is constructed based on the entire dataset that was available from the sources mentioned above. Contrary to the analysed data, the scope of the network does not limit itself to the genes found in a particular type of cells, such as tissue.  \\
-The process of creating the gene network is schematically shown in Figure \ref{fig:network_creation}.
+The protein interaction data that was used is available in the STRING database (\url{www.string-db.org}) \cite{Szklarczyk2016}. The weight of the edges between individual proteins, which form the nodes, are a measure of how confidently an interaction can be judged to be true. Mapping of genes to their proteins was done using the Ensembl database for \textit{mus musculus} (\url{www.ensembl.org}) \cite{Zerbino2017}. 
+For the creation of our network, only the proteins that could be associated to an expressing gene were kept.
+Self-loops that resulted from genes whose expression produces multiple proteins and isolated nodes (no link to another node) were removed, yielding a network with 20'330 genes forming nodes that are connected by 11'856'336 edges. It has to be mentioned that the gene network is constructed based on the entire dataset that was available from the sources mentioned above. Contrary to the analysed data, the scope of the network does not limit itself to the genes found in a particular type of cells, such as tissue.  \\
+
 \begin{figure}
 	\centering
 	\includegraphics[width=0.45\textwidth]{network.png}
-	\caption{Schematic of network creation}
+	\caption{Schematic of network creation.  The genes \textit{A, B, C, D} replace the proteins which they express. Proteins that cannot be associated to a gene or vice versa are removed. Resulting self-loops, asi in the case of replacing protein c and d with gene \textit{C} are also removed. Moreover, between gene \textit{A} and \textit{C} two edges of weight 1 and 2 respectively would be created. These edges are summarized in one edge of weight 3. }
 	\label{fig:network_creation}
 \end{figure}
-In Figure \ref{fig:network_creation}, the genes \textit{A, B, C, D} in blue are associated with the proteins that their expression produces. It is possible that the expression of a gene can result in multiple proteins, such as the gene \textbf{C} that codes for proteins \textit{c} and \textit{d}. The nodes in the original protein interaction network are then replaced with the gene that is responsible for their creation. In the case of the genes \textit{A} and \textit{C} in Figure \ref{fig:network_creation}, this yields two edges between the same genes. Thus, such genes are linked with only one edge with a weight equal to the sum of all the incident edge weights to the concerned proteins. The self-loops that might occur due to two linked proteins being expressed by the same gene such as \textit{c} and \textit{d} in the above example are removed. Proteins that could not be associated to a gene or vice versa are also removed from the network.
+The process of creating the gene network is schematically shown in Figure \ref{fig:network_creation}. In the case that the replacing of the proteins produces multiple edges between genes, a single edge with a weight equal to the sum of all the individual edge weights is created instead.
+\par
 The original score $s_{ij}$ of a link between nodes $i$ and $j$ was used to compute an equivalent distance, where high scores result in a short distance. Subsequently, new link weights $W_{ij}$ were set using a Gaussian kernel.
 
-\begin{align}
-d_{ij} &= \frac{1}{s_{ij}} \\
-W_{ij} &= exp (- \frac{d_{ij}^2}{2 \sigma^2})
-\end{align}
-\par
+\begin{equation}
+W_{ij} = \exp \{- \frac{1}{2}\frac{1}{(s_{ij} \sigma)^2}\}
+\end{equation}
 
-The scRNA-sec data can be transformed into a graph signal by assigning the count of expressed genes to the corresponding gene in the network, yielding a signal $\boldsymbol{x} \in \mathbb{R}^N$, where $N$ is the total number of nodes. Genes whose expression was not present as a feature in the scRNA-sec data are assigned 0. \\
-After mapping the data onto the resulting graph, graph signal processing (GSP) can be leveraged to find a lower-dimensional manifold that embeds the original data, based purely on the interaction of the protein expression of the genes. The two methods that were applied take advantage of the fact that the eigendecomposition of the $N \times N$ graph Laplacian matrix $\boldsymbol{L} = \boldsymbol{U\Lambda U}^T$ forms the equivalent of a Fourier basis on a graph, where $\boldsymbol{U}$ are the $N$ Fourier basis vectors and the $N$ eigenvalues $\boldsymbol{\Lambda}$ represent the corresponding frequencies.
- \par
-Graph sampling (GS) aims to find nodes where signal energy is the most concentrated for frequencies in the range $(f_{min}, f_{max})$. The \textit{local graph coherence} at node $i$ of order $k$ is defined as the square of the $i$-th entry of the $k$-th eigenvector $u_{ik}$ of the Laplacian, which is a measure for how localized the first $k$ Fourier modes are on node $i$ \cite{Puy2018}. By choosing the first $K$ indices $i$ that maximize $\Sigma_{k=f_{min}}^{f_{max}} u_{ik}^2$, the data can be reduced to the $K$ genes whose read-count information has the most value based on their location in the network for the chosen frequency range. In particular, we applied the GS algorithm for only low frequencies (below N/2) and only high frequencies (above N/2). 
+\subsection{Feature Creation through Graph Signal Processing}
+The scRNA-sec data can be transformed into a graph signal by assigning the count of expressed genes to the corresponding gene in the network, yielding a signal $\boldsymbol{x} \in \mathbb{R}^N$, where $N$ is the total number of nodes. Genes whose expression was not present as a feature in the scRNA-sec data are assigned zero. 
 \par
-The idea behind graph frequency sampling (GFS) is essentially to transform the data into the spectral domain and retain components above or below a certain frequency. The Graph Fourier Transform (GFT) and its inverse are given by
+After mapping the data onto the resulting graph, graph signal processing (GSP) can be leveraged to find a lower-dimensional manifold that embeds the original data, based purely on the constructed network. The two methods that were applied take advantage of the fact that the eigendecomposition of the $N \times N$ graph Laplacian matrix $\boldsymbol{L}$ forms the equivalent of a Fourier basis on a graph. Given the eigendecomposition $\boldsymbol{L} = \boldsymbol{U\Lambda U}^T$, $\boldsymbol{U} = [ \boldsymbol{u}_1 ... \boldsymbol{u}_N]$ are the $N$ Fourier basis vectors and the $N$ eigenvalues $\boldsymbol{\Lambda}$ represent the corresponding frequencies.
+\par
+Graph sampling (GS) is a way to identify genes which are of particular importance to the network. In particular, it identifies nodes where signal energy is the most concentrated for frequencies in the range $(f_{min}, f_{max})$. The \textit{local graph coherence} at node $i$ of order $k$ is defined as the square of the $i$-th entry of the $k$-th eigenvector $u_{ik}$ of the Laplacian, which is a measure for how localized the first $k$ Fourier modes are on node $i$ \cite{Puy2018}. By choosing the first $K$ indices $i$ that maximize $\Sigma_{k=f_{min}}^{f_{max}} u_{ik}^2$, the data can be reduced to the $K$ genes whose read-count information has the most value based on their location in the network for the chosen frequency range. In particular, we applied the GS algorithm for only low frequencies (below $\frac{N}{2}$) and only high frequencies (above $\frac{N}{2}$). 
+\par
+The idea behind graph frequency sampling (GFS) is essentially to transform the data into the spectral domain and retain components above or below a certain frequency. The Graph Fourier Transform (GFT) $\boldsymbol{\hat{x}}$ of a signal $\boldsymbol{x}$ and its inverse are given by
 \begin{align}\label{equ:GFT}
-\boldsymbol{\hat{x}} &= \boldsymbol{U}^T \boldsymbol{x}\\
+\boldsymbol{\hat{x}} &= \boldsymbol{U}^T \boldsymbol{x}\\ \label{equ:iGFT}
 \boldsymbol{x} &= \boldsymbol{U} \boldsymbol{\hat{x}}
 \end{align} 
-\par
-In our GFS algorithm, the graph signal is projected only onto the $K$ eigenvectors associated to eigenvalues below or above a cut-off frequency, resulting in a $K$-dimensional signal $\boldsymbol{\hat{x}_{GFS}}$. For example, choosing the $K$ lowest frequencies,
+In the GFS algorithm, the graph signal is projected only onto the $K$ eigenvectors associated to eigenvalues below or above a cut-off frequency, resulting in a $K$-dimensional signal $\boldsymbol{\hat{x}_{GFS}}$. For example, choosing the $K$ lowest frequencies,
 \begin{equation}
-\boldsymbol{\hat{x}_{GFS}} = \boldsymbol{U}[0:K]^T \boldsymbol{x}.
+\boldsymbol{\hat{x}_{GFS}} = [ \boldsymbol{u}_1 ... \boldsymbol{u}_K]^T \boldsymbol{x}.
 \end{equation} 
 \par
-We used the the $K$ lowest and highest frequencies to transform the original data. GFS potentially mitigates issues due to batch effects that might appear as a low-frequency component in the graph signal. Similarly, the presence of drop-outs might manifest itself as a high-frequency component and thus be filtered when considering only low-frequency eigenvectors.\\
+We used both the $K$ lowest and highest frequencies separately to transform the original data. GFS using high frequencies (HF) potentially mitigates issues due to batch effects that might appear as a low-frequency component in the graph signal. Similarly, the presence of drop-outs might manifest itself as a high-frequency component and thus be filtered when considering only low-frequency (LF) eigenvectors.
 \par
-The GFT was also used to implement a simple low or pass rectangle filter of the data using the network. After transforming the data into a graph signal as described previously, the GFT is computed (Equation \ref{equ:GFT}). The components of the resulting spectrum that are above or below a cut-off frequency are set to zero. Subsequently, the inverse GFT given by is applied to obtain a filtered version of the original signal. While this process does not reduce the dimensionality of the data, it could provide insight on validity of the network creation process and reduce noise.
+The GFT was also used to implement graph filtering with a simple low or pass rectangle filter in the graph spectral domain. After transforming the data into a graph signal as described previously, the GFT is computed (Equation \ref{equ:GFT}). The components of the resulting spectrum that are above or below a cut-off frequency are set to zero. Subsequently, the inverse GFT (Equation \ref{equ:iGFT}) is applied to obtain a filtered version of the original signal. While this process does not reduce the dimensionality of the data, it could provide insight on validity of the network creation process and reduce noise.
 \par
+
+\subsection{Data Transformations}
 In summary, 8 different methods are used to transform the data and reduce dimensionality: PCA, Graph sampling (LF and HF), Graph frequency sampling (LF and HF), Graph filtering (LF and HF) and a nested method that combines all the above.
 
 \subsection{Machine Learning Methods}
-Within this project, we applied four different types of classifiers: L1-regularized logistic regression, random forest, neural net and XGboost.
+Within this project, we applied four different types of classifiers to all our data transformations: L1-regularized logistic regression, random forest, neural networks and XGboost.
 \par
-Logistic regression classifiers were trained using the scikit-learn package (v0.20.1) in python. The hyper-parameter lamdba was chosen using the built in ten-fold cross-validation functionality using a grid-size of 40. The solution was found using stochastic average descent [CITATION], with a tolerance of 0.005. 
+Logistic regression classifiers were trained using the scikit-learn package (v0.20.1) in python. The regularization parameter was chosen using the built in ten-fold cross-validation functionality using a grid-size of 40. The solution was found using stochastic average descent [CITATION], with a tolerance of 0.005. 
 \par
-The random forest classifier was also trained using scikit-learn. For training, 5000 fully grown, unpruned trees were constructed. At every split, $\sqrt{(n_{features})}$ were considered when looking for the best split.
+The random forest classifier was also trained using scikit-learn. For training, 5000 fully grown, unpruned trees were constructed. At every split, $\sqrt{n_{features}}$ were considered when looking for the best split.
 \par
 For training of XGBoost, the training set was split into a train (80\% of data) and a validation (20\% of data) set. 
-
 \par
-The neural net consists of six fully connected layers used as classifier into the two classes not stem cell and stem cell. The probabilities are then computed using a softmax classifier. The net was trained with stochastic gradient descent on the cross entropy loss in ten epochs. In order to find the best learning rate and regularization constant, validation on part of the training set was conducted for different parameters during one epoch each. The best learning rate and weight decay were retained after two refinements. During the training of the neural net, a learning weight decay was used to avoid oscillating across the optimum.
+The neural network consists of six fully connected layers used as classifier into the two classes not stem cell and stem cell. The probabilities are then computed using a softmax classifier. The network was trained with stochastic gradient descent on the cross entropy loss in ten epochs. In order to find the best learning rate and regularization constant, validation on part of the training set was conducted for different parameters during one epoch each. The best learning rate and weight decay were retained after two refinements. During the training of the neural network, a learning weight decay was used to avoid oscillating across the optimum.
 
 
 \section*{Results}
 
-The performance of each classifier was assessed using the Area under curve (AUC) metric and accuracy.
+The performance of each classifier was assessed using AUC.
 The AUC of the basic classifiers on set B are summarized in Figure \ref{fig:train_acc} below.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.45\textwidth]{train_auc.png}
-	\caption{AUC scores on set B for the basic classifiers}
+	\caption{AUC scores on set B for the basic classifiers.}
 	\label{fig:train_acc}
 \end{figure}
-On the figures above we can observe that the impact of the choice data transformation is significant.
-In average, the best results were achieved using the network-based GS LF transformation in combination  with maximum AUC of 0.963 for the random forest classifier. The other network-based transformations and PCA perform similarly or worse than the baseline model. It can also be observed that the random forest classifier produces AUC scores of at least 0.83 with all network-based transformations and the baseline model, yet a significant drop can be observed for PCA. Neural nets on the other hand struggles with GFS LF and GS HF but performs well on PCA-transformed data. The AUC scores for both the LF and HF graph-filtered data is similar to the baseline model for all classifier, thus no specific conclusion on the graph frequency components of the data can be made. Overall, on set B, a slightly better performance than the baseline model can be obtained with the GS LF transformation.
+We observe that the impact of the choice of data transformation is significant.
+The best results were achieved using the network-based GS LF transformation in combination  with maximum AUC of 0.963 for the random forest classifier. Another notable .... The other network-based transformations perform similarly or worse than the baseline model. 
 \par  
-The following AUC scores were obtained with all classifiers, including the nested classifier that was previously trained on the predictions of the basic classifiers on set B (Figure \ref{fig:train_acc}).
+The following AUC scores were obtained on set C with all classifiers, including the nested classifier that was previously trained on the predictions of the basic classifiers on set B (Figure \ref{fig:train_acc}).
 
 \begin{figure}[H]
 	\centering
@@ -141,8 +143,9 @@ The following AUC scores were obtained with all classifiers, including the neste
 	\label{fig:test_acc}
 \end{figure}
 
-While GS LF produced the best results on set B, PCA clearly yield the best AUC scores on set C, outperforming the baseline model with all classifiers. The performance with the network-based dimensionality reduction methods compared to the baseline model is heavily dependent on the choice of classifier. Compared set B, the trend is similar for neural nets whereas a significant drop in performance with random forest is observable.
-Based on the results of set B and C, PCA seems to be the most versatile dimensionality reduction method, producing results that are similar or superior to the baseline model.The scores obtained with the graph-filtered data without dimensionality reduction on set C are similar or higher than the baseline model, but no clear winner between LF and HF can be determined. 
+While GS LF produced the best results on set B, PCA clearly yield the best AUC scores on set C, outperforming the baseline model with all classifiers. The performance with the network-based dimensionality reduction methods compared to the baseline model is heavily dependent on the choice of classifier. 
+
+Based on the results of set B and C, PCA seems to be the most versatile dimensionality reduction method, producing results that are similar or superior to the baseline model. The scores obtained with the graph-filtered data without dimensionality reduction on set C are similar or higher than the baseline model, but no clear winner between LF and HF can be determined. 
 
 \section*{Conclusion}
 
