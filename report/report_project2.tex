@@ -160,7 +160,9 @@ While GS LF produced the best results on set B, PCA clearly yield the best AUC s
 Based on the results of set B and C, PCA seems to be the most versatile dimensionality reduction method, producing results that are similar or superior to the baseline model. The scores obtained with the graph-filtered data without dimensionality reduction on set C are similar or higher than the baseline model, but no clear winner between LF and HF can be determined. 
 
 \section*{Conclusion}
-
+As a follow-up to this report, it would be interesting to reconstruct the decision making process of the best-performing classifiers in order to backtrack the importance of individual genes in stemness decision. This may give valuable biological insights. Moreover, it could be of interest to take into account other networks in order to analyze whether they improve the classifier performance. A network that also yields consistently good predictions could be of interest for other applications, such as batch effect and drop-out correction\cite{vanDijk2017}. Additionally, the application of existing batch-effect and drop-out correction techniques previous to classifier training may improve performance. Finally, since scRNA-seq gets increasingly popular, retraining the classifier when more data is available is of interest. 
+\par
+All in all, we've created a valuable tool for the detection of stem cells. We've shown that the classifier performs reasonably well on independent test data. 
 
 
 
