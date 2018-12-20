@@ -19,11 +19,18 @@ from pred.base_pred import do_base_pred
 from pred.nested_pred import do_nested_pred
 from pred.performance_evaluation import do_performance_evaluation
 
+# Network Script
+from network.gene_network import GeneNetworkPCA
+
+
+
+# --- EIGENDECOMPOSITION ---
+print('Generate Eigendecomposition')
+GeneNetworkPCA('../network/adjacency_sparse.npz', '../network/node_index.csv').compute_eigdec()
 
 # --- LOADING ---
 DATA_FOLDER = '../../data/'
 
-""" 
 print('LOADING TRAIN')
 # Load Trainset
 train_x, gene_names_x, cell_names_x = load_data(DATA_FOLDER + 'train_data.csv.gz')
@@ -75,7 +82,7 @@ joost_x = joost_x[:, 1:]
 
 print('PREDICT BASE')
 do_base_pred(train_x, ind_train_x, test_x, joost_x)
-"""
+
 
 print('TRAIN NESTED')
 do_nested_train()
