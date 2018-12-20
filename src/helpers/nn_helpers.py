@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 import torch.utils.data as utils
-from helpers.neural_net import NeuralNet
+from neural_net import NeuralNet, NeuralNetWhole
 
 
 def nn_train(x_train, y_train, classif_folder, lr=7e-2, reg=2e-10, momentum=0.95, epochs=10):
@@ -25,18 +25,24 @@ def nn_train(x_train, y_train, classif_folder, lr=7e-2, reg=2e-10, momentum=0.95
     :return: Nothing
     """
     
+    y_train[np.where(y_train == -1)] = 0 # Want a 0/1 array, not -1/1
+    
     X_train, y_train = torch.from_numpy(x_train).type(torch.FloatTensor), torch.from_numpy(y_train).type(torch.LongTensor)
 
     traindataset = utils.TensorDataset(X_train, y_train)
     trainloader = utils.DataLoader(traindataset, batch_size=100, shuffle=True)
 
     # Initialization of neural net
-    net = NeuralNet(n_input_channels=X_train.shape[1])
+    n_features = X_train.shape[1]
+    if n_features <= 1000:
+        net = NeuralNet(n_input_channels=n_features)
+    else:
+        net = NeuralNetWhole(n_input_channels=n_features)
     criterion = torch.nn.CrossEntropyLoss()
 
     # Training and validation
     for e in range(epochs):
-        print(e)
+        print("Epoch: {}/{}..".format(e+1, epochs))
         learn_rate = lr*0.01**(e/epochs) # Learning rate decay, starting from lr given
         optimizer = torch.optim.SGD(net.parameters(), lr=learn_rate, weight_decay=reg, momentum=momentum)
         for data, labels in iter(trainloader):
@@ -69,7 +75,11 @@ def nn_predict(X, classif_path, result_file_np=None, result_file_csv=None):
     """
     # Predict
     data_pts = Variable(torch.from_numpy(X).type(torch.FloatTensor))
-    Net = NeuralNet(n_input_channels=X.shape[1], n_output=2)
+    n_features = X.shape[1]
+    if n_features <= 1000:
+        Net = NeuralNet(n_input_channels=n_features)
+    else:
+        Net = NeuralNetWhole(n_input_channels=n_features)
     Net.load_state_dict(torch.load(classif_path))
     output = Net.predict(data_pts)
     pred = output.data.numpy()
