@@ -16,7 +16,7 @@ def nn_train(x_train, y_train, classif_folder, lr=7e-2, reg=2e-10, momentum=0.95
     """
     Trains the neural network and stores the solution in the classif_folder
     :param x_train: data to be trained on
-    :param y_train: response (labels)
+    :param y_train: response (labels) as 0/1
     :param classif_folder: folder in which all classifiers are saved
     :param lr: (optional) learning rate at the beginning of the training
     :param reg: (optional) L2 regularization weight
@@ -24,8 +24,6 @@ def nn_train(x_train, y_train, classif_folder, lr=7e-2, reg=2e-10, momentum=0.95
     :param epochs: (optional) number of training epochs
     :return: Nothing
     """
-    
-    y_train[np.where(y_train == -1)] = 0 # Want a 0/1 array, not -1/1
     
     X_train, y_train = torch.from_numpy(x_train).type(torch.FloatTensor), torch.from_numpy(y_train).type(torch.LongTensor)
 
