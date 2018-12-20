@@ -4,15 +4,17 @@ from helpers.transformation_train import *
 
 
 # Loading Training Data
-def do_filter_lowpass_train(train_x, train_y):
+def do_filter_and_pca_lowpass_train(train_x, train_y):
     """
-    Trains classifier on low-pass filtered data
+    Trains classifier on low-pass filtered, and subsequently pca transformed data
     :param train_x: Train set
     :param train_y: Train response
-    :return:
+    :return: Nothnig
     """
-    CLASSIF_FOLDER = '../../res/classif/filter_lowpass/'
+    print('Loading Trainset')
+    CLASSIF_FOLDER = '../../res/classif/filter_and_pca_low-pass/'
     NETWORK_FOLDER = '../../src/network/'
+
 
     # Transforming Data
     print('Transforming Data')
@@ -20,7 +22,10 @@ def do_filter_lowpass_train(train_x, train_y):
                             method='filter', attenuation='low-pass',
                             fourier_basis_path=(NETWORK_FOLDER+'eigvalues_combinatorial.npy',
                                                 NETWORK_FOLDER+'eigvectors_combinatorial.npy'))
-    x = transf.fit_transform(train_x, '../network/genes_in_data.csv')
+    filtered = transf.fit_transform(train_x, '../network/genes_in_data.csv')
+
+    pca = fit_pca(filtered, CLASSIF_FOLDER, ret=True)
+    x = pca.transform(filtered)
 
 
     # Training Classifier
