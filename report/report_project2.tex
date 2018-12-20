@@ -23,7 +23,7 @@
 \maketitle
 
 \begin{abstract}
-	Abstract...
+	Single cell RNA sequencing provides new data to determine the type of a cell. The goal of this project is to predict whether or not we have a stem cell. To do that, different transformations of the data, based on machine learning and network processing techniques, were used. Four different machine learning methods were then applied on all of these so created datasets: Logistic regression, random forest, neural network and XGboost. The results obtained varied significantly depending on the methods and data transformations. Due to its consistently good results on different datasets, high frequency filtered data, on which a principal component analysis was performed and which was trained on a neural network, was assessed to be the best method. Its performance was also significantly better than the baseline model.
 \end{abstract}
 
 \section*{Introduction} 
@@ -54,11 +54,7 @@ Different basic classifiers were trained on a total of eight data transformation
 \end{table}
 
 \subsection{Dataset Preparation}
-Cell type annotation was taken from the clustering done in the original papers. All three sets consist only of cell types which were determined as being clearly stem or non-stem in order to avoid introducing a bias into the model. Notably, progenitors, endothelial and fibroblast cells were excluded from the analysis. For the set A, the cells were down-sampled to be of equal proportions from the three different germ layers, and within each germ layer to be 50\% stem and 50\% non-stem. This was chosen in order to avoid introducing a tissue-specific bias in determining stem-ness. 
-\par
-Since different datasets measure the expression of different genes, one has to choose which genes to use for the analysis in order to be able to join different datasets. The genes retained for our analysis were selected as follows: For all eleven sets within our train set, we determined whether they contained stem cells, non-stem cells or both. Then, the genes common to all sets with stem-cells were combined with the genes present in all sets containing non-stem cells. In this way, genes that are only expressed in either stem or non-stem cells are retained while minimizing the number of genes with missing values. This resulted in 13'587 genes retained for further analysis.
-\par
-For datasets in which a necessary gene isn't represented, we set the gene expression to zero. This is based on the heuristic that such genes are lowly expressed in these datasets, as otherwise they would have been sufficiently measured to be retained in the final dataset. 
+The data as well as the cell type annotations were taken from the original papers. The data was then processed to have only 13'587 genes remaining. Missing values were set to zero. Furthermore, the data was sampled to have exactly 50\% clearly identified stem and 50\% non-stem cells. For a complete explanation of the dataset preparation, refer to supplement \ref{supp:data_prep}.
 \par
 After retaining only the necessary genes and filling missing values with zero, we normalized the expression values to transcripts per million before transforming the values with $ln(1+x)$. This is standard procedure for scRNA-seq data. All subsequent transformations and training steps were based on data in this format. 
 
@@ -112,15 +108,13 @@ Within this project, we applied four different types of classifiers to all our d
 \par
 Logistic regression classifiers were trained using the scikit-learn package in python \cite{scikit-learn}. The regularization parameter was chosen to be the best in accuracy using the built in ten-fold cross-validation functionality using a grid-size of 40. The solution was found using stochastic average descent, with a tolerance of 0.005. 
 \par
-The random forest classifier was also trained using scikit-learn. For training, 5000 fully grown, unpruned trees were constructed. At every split, $\sqrt{n_{features}}$ were considered when looking for the best split.
+The random forest classifier was also trained using scikit-learn. For training, 5000 fully grown, unpruned trees were constructed. At every split, $\sqrt{n_{features}}$ were considered when looking for the best split.  
 \par
-Training of XGBoost was done using the python package xgboost \cite{Chen:2016:XST:2939672.2939785}. In order to prevent overfitting, the best classifier was selected based on the best  accuracy on a validation set consisting of 20\% of the training data. A learning rate of 0.2 and a maximum tree depth of three. For all other parameters, default values were used.  
-\par
-The neural network consists of fully connected layers alternating with ReLU activation functions using PyTorch \cite{paszke2017automatic}. It classifies into two classes (non-stem or stem cell) and returns the probabilities using a softmax classifier. Six layers were used for the dimensionality reduced data. Due to a lack of working memory, a hidden layer fc0 with 500 nodes was added at the front of the network for the data with full dimensionality. This allows us to compare the addition of a layer with 500 nodes to a PCA of the same number of dimensions. The architecture is shown in Table \ref{tab:ArchitectureNN} below.
+The neural network consists of fully connected layers alternating with rectifier linear unit (ReLU) activation functions using PyTorch \cite{paszke2017automatic}. It classifies into two classes (non-stem or stem cell) and returns the probabilities using a softmax classifier. Six layers were used for the dimensionality reduced data. Due to a lack of working memory, a hidden layer fc0 with 500 nodes was added at the front of the network for the data with full dimensionality. This allows us to compare the addition of a layer with 500 nodes to a PCA of the same number of dimensions. The architecture is shown in Table \ref{tab:ArchitectureNN} below.
 
 \begin{table}[H]
 	\centering
-	\begin{tabular}{rccccccc}
+	\begin{tabular}{r|ccccccc}
 \hline
   \textbf{Layer} &  fc0 &  fc1 & fc2 & fc3 & fc4 & fc5 & fc6 \\
   \textbf{Nb Nodes} &  500 &  2500 & 1000 & 200 & 100 & 20 & 2 \\
@@ -128,10 +122,12 @@ The neural network consists of fully connected layers alternating with ReLU acti
 \end{tabular}
 	\caption{Architecture of the neural network. fc0 is only present for data whose dimensions are not reduced.}
 	\label{tab:ArchitectureNN}
-	\vspace{-8mm}
+	\vspace{-6mm}
 \end{table}
 
 The network was trained with stochastic gradient descent on the cross entropy loss in 40 epochs. The best learning rate and regularization constant were found by validating on 15\% of the train set. During the training of the neural network, a learning weight decay was used to avoid oscillating across the optimum.
+\par
+Training of XGBoost was done using the python package xgboost \cite{Chen:2016:XST:2939672.2939785}. In order to prevent overfitting, the best classifier was selected based on the best  accuracy on a validation set consisting of 20\% of the training data. A learning rate of 0.2 and a maximum tree depth of three. For all other parameters, default values were used.
 \par
 For the nested models, the same four classifiers were used. But instead of using the data directly, the predictions of all data transformations and methods were used as input.
 
@@ -145,7 +141,7 @@ The AUC of the basic classifiers on set B are summarized in Figure \ref{fig:trai
 	\label{fig:train_acc}
 \end{figure}
 We observe that the impact of the choice of data transformation is significant.
-The best results were achieved using the network-based GS LF transformation with a maximum AUC of 0.963 for the random forest classifier. Moreover, HF filtering and GS LF with XGBoost perform well, with an AUC of 0.951 and 0.929. All other models perform worse than the baseline model trained with XGBoost and random forest with an AUC of 0.910 and 0.900 respectively. Notably, the neural network on HF followed by PCA performs quite good, with an AUC of 0.878 performing only slightly worse than the baseline model.
+The best results were achieved using the network-based GS LF transformation with a maximum AUC of 0.963 for the random forest classifier. Moreover, HF filtering and GS LF with XGBoost perform well, with an AUC of 0.951 and 0.929. All other models perform worse than the baseline model trained with XGBoost and random forest with an AUC of 0.910 and 0.900 respectively. Notably, the neural network on HF followed by PCA performs quite well, with an AUC of 0.878 performing only slightly worse than the baseline model.
 \par  
 The following AUC scores were obtained on set C with all classifiers, including the nested classifier that was previously trained on the predictions of the basic classifiers on set B (Figure \ref{fig:train_acc}).
 
@@ -155,9 +151,9 @@ The following AUC scores were obtained on set C with all classifiers, including 
 	\caption{AUC scores on set C for all classifiers }
 	\label{fig:test_acc}
 \end{figure}
-It becomes immediately apparent that the nested classifiers did not perform better than their non-nested counterparts. Moreover, what is of note here is that the best-performing method on set C, GS LF with random forest, performs very poorly with an AUC of 0.574, and is only barely better than just deciding by chance. Similarly, GS LF with XGBoost doesn't perform well either, with an AUC of 0.79. However, the neural network on HF followed by PCA has the best AUC score (0.941), followed by logistic lasso (0.940) on data with same transformation. This is followed by XGBoost, logistic lasso and neural networks trained on PCA transformed data (AUC of 0.934, 0.925, and 0.924). High-pass filtering before applying PCA thus slightly improves predictive performance of the classifier.
+It becomes immediately apparent that the nested classifiers did not perform better than their non-nested counterparts. Moreover, note that the best-performing method on set C, GS LF with random forest, performs very poorly with an AUC of 0.574, and is only barely better than just deciding by chance. Similarly, GS LF with XGBoost doesn't perform well either, with an AUC of 0.79. However, the neural network on HF followed by PCA has the best AUC score (0.941), followed by logistic lasso (0.940) on data with same transformation. This is followed by XGBoost, logistic lasso and neural networks trained on PCA transformed data (AUC of 0.934, 0.925, and 0.924). High-pass filtering before applying PCA thus slightly improves predictive performance of the classifier.
 \par
-The results show that the neural network trained on HF filtered and PCA transformed data yields the most robust performance amongst all classifiers. Since robustness is of utmost importance, we thus determine it to be our final classifier. In order to understand how this final classifier performed on cells that are transitioning between stem- and non-stem cells, we generated predictions on the Joost dataset containing cells of the hair follicle. Supplementary figure \ref{fig:joost} shows the predicted probabilities as box- and scatter plot for individual cells grouped by cell type, as well as the ordering of cell types according to stemness as done in the original paper. Our results clearly show that the predicted stemness probabilities are consistent with the results of the paper. The noise can at least in part be attributed to the somewhat inexact cell type annotation.
+The results show that the neural network trained on HF filtered and PCA transformed data yields the most robust performance amongst all classifiers. Since robustness is of utmost importance, we thus determine it to be our final classifier. In order to understand how this final classifier performed on cells that are transitioning between stem- and non-stem cells, we generated predictions on the Joost dataset containing cells of the hair follicle. Supplementary figure \ref{fig:joost} shows the predicted probabilities as box- and scatter plot for individual cells grouped by cell type, as well as the ordering of cell types according to stemness as done in the original paper. Our results clearly show that the predicted stemness probabilities are consistent with the results of the paper. The noise can at least to some extent be attributed to the somewhat inexact cell type annotation.
 
 \section*{Conclusion}
 Our results show that different classifiers can have very different predictive performances on different test sets. We thus chose a final classifier that had a robust performance on both sets. The predicted probabilities were consistent with results of other methods. Moreover, a nested approach did not yield any improvement. Since set B, on which it was trained, contained much less different data sets due to a general lack of data, it is likely that the second level classifier overfitted and thus performed badly on set C. 
@@ -167,13 +163,20 @@ Whereas the graph transformations didn't yield consistent improvements over the 
 As a follow-up to this report, it would be interesting to reconstruct the decision making process of the best-performing classifiers in order to backtrack the importance of individual genes in stemness decision. This may give valuable biological insights. Moreover, it could be of interest to take into account other networks in order to analyze whether they improve the classifier performance. A network that also yields consistently good predictions could be of interest for other applications, such as batch effect and drop-out correction\cite{vanDijk2017}. Additionally, the application of existing batch-effect and drop-out correction techniques previous to classifier training may improve performance. Finally, since scRNA-seq gets increasingly popular, retraining the classifier when more data is available is of interest. 
 
 
-
-
 %%% Bibliography
 \bibliographystyle{IEEEtran}
 \bibliography{literature-project2}
 
 \beginsupplement
+\section*{Supplement}
+\setcounter{subsection}{0}
+\subsection{Dataset Preparation}\label{supp:data_prep}
+Cell type annotation was taken from the clustering done in the original papers. All three sets consist only of cell types which were determined as being clearly stem or non-stem in order to avoid introducing a bias into the model. Notably, progenitors, endothelial and fibroblast cells were excluded from the analysis. For the set A, the cells were down-sampled to be of equal proportions from the three different germ layers, and within each germ layer to be 50\% stem and 50\% non-stem. This was chosen in order to avoid introducing a tissue-specific bias in determining stem-ness. 
+\par
+Since different datasets measure the expression of different genes, one has to choose which genes to use for the analysis in order to be able to join different datasets. The genes retained for our analysis were selected as follows: For all eleven sets within our train set, we determined whether they contained stem cells, non-stem cells or both. Then, the genes common to all sets with stem-cells were combined with the genes present in all sets containing non-stem cells. In this way, genes that are only expressed in either stem or non-stem cells are retained while minimizing the number of genes with missing values. This resulted in 13'587 genes retained for further analysis.
+\par
+For datasets in which a necessary gene isn't represented, we set the gene expression to zero. This is based on the heuristic that such genes are lowly expressed in these datasets, as otherwise they would have been sufficiently measured to be retained in the final dataset. 
+
 \onecolumn
 \begin{table}[H]
 	\centering
@@ -187,6 +190,7 @@ As a follow-up to this report, it would be interesting to reconstruct the decisi
 	\hline
 	\end{tabular}
 	\caption{AUC on set B, raw data in \%}
+	\vspace{-6mm}
 \end{table}
 
 \begin{table}[H]
@@ -201,18 +205,19 @@ As a follow-up to this report, it would be interesting to reconstruct the decisi
 	\hline
 	\end{tabular}
 	\caption{AUC on set C, raw data in \%}
+	\vspace{-6mm}
 \end{table}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.5\textwidth]{pca_explvar.png}
+	\includegraphics[width=0.6\textwidth]{pca_explvar.png}
 	\caption{Explained variance as a function of the number of components chosen for PCA}
 	\label{fig:explvar}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.45\textwidth]{joost.pdf}
+	\includegraphics[width=0.7\textwidth]{joost.pdf}
 	\caption{Predicted stemness probabilities as determined by best-performing classifier on subset of cell-types in Joost 2016 \cite{Joost2016} data set. Arrows on the left side show the transition of stemness across cell-types, as determined in the original paper.}
 	\label{fig:joost}
 \end{figure}
