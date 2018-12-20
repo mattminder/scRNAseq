@@ -39,8 +39,19 @@ Within this report, we compare the prediction performance of different stem cell
 
 \section*{Methods}
 \subsection{Experimental Setup}
-For the entire analysis, 17 publicly available datasets were used [CITATION]. These data sets were split into three sets, train set (eleven data sets), test set (three data sets) and the generalization train set (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on the training set, and their predictive performance was assessed in terms of accuracy on the test set. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in the generalization train set. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed on the test set. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
+For the entire analysis, 17 publicly available datasets were used [CITATION]. These data sets were split into three sets, Set A (eleven data sets), Set B (three data sets) and Set C (four data sets). Two types of classifiers were trained, which will be called basic and nested classifiers. The basic classifiers were trained on Set A, and their predictive performance was assessed in terms of accuracy on the Set B and C. The nested classifiers were trained as follows: Using the basic classifiers, predictions were generated for the data in Set B. Then, the resulting predictions by all basic classifiers were used as training set for a second classifier, whose performance was assessed and compared with the basic classifiers on Set C. By constructing the two-layer nested classifiers, we hoped to be able to obtain a final model which is less prone to batch effects. 
 Different basic classifiers were trained on a total of eight data transformations described below, six of which are network-based. 
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|r|c|c|c|}
+	\hline
+	\textbf{Classifier type} & \textbf{Set A} & \textbf{Set B} & \textbf{Set C} \\ \hline
+	Basic & Training & Testing & Testing \\
+	Nested & - & Training & Testing \\
+	\hline
+	\end{tabular}
+	\caption{Use of datasets}
+\end{table}
 
 \subsection{Dataset Preparation}
 Cell type annotation was based on the clustering done in the original papers. All three sets consist only of cells which were determined as being stem or non-stem in order to avoid introducing a bias into the model. Notably, progenitors, endothelial and fibroblast cells were excluded from the analysis. For the train set, the cells were down-sampled to be of equal proportions from the three different germ layers, and within each germ layer 50\% stem and 50\% non-stem. This was chosen in order to avoid introducing a tissue-specific bias in determining stem-ness. 
@@ -80,10 +91,10 @@ After mapping the data onto the resulting graph, graph signal processing (GSP) c
 Graph sampling (GS) aims to find nodes where signal energy is the most concentrated for frequencies in the range $(f_{min}, f_{max})$. The \textit{local graph coherence} at node $i$ of order $k$ is defined as the square of the $i$-th entry of the $k$-th eigenvector $u_{ik}$ of the Laplacian, which is a measure for how localized the first $k$ Fourier modes are on node $i$ \cite{Puy2018}. By choosing the first $K$ indices $i$ that maximize $\Sigma_{k=f_{min}}^{f_{max}} u_{ik}^2$, the data can be reduced to the $K$ genes whose read-count information has the most value based on their location in the network for the chosen frequency range. In particular, we applied the GS algorithm for only low frequencies (below N/2) and only high frequencies (above N/2). 
 \par
 The idea behind graph frequency sampling (GFS) is essentially to transform the data into the spectral domain and retain components above or below a certain frequency. The Graph Fourier Transform (GFT) and its inverse are given by
-\begin{align*}\label{equ:GFT}
+\begin{align}\label{equ:GFT}
 \boldsymbol{\hat{x}} &= \boldsymbol{U}^T \boldsymbol{x}\\
 \boldsymbol{x} &= \boldsymbol{U} \boldsymbol{\hat{x}}
-\end{align*} 
+\end{align} 
 \par
 In our GFS algorithm, the graph signal is projected only onto the $K$ eigenvectors associated to eigenvalues below or above a cut-off frequency, resulting in a $K$-dimensional signal $\boldsymbol{\hat{x}_{GFS}}$. For example, choosing the $K$ lowest frequencies,
 \begin{equation}
@@ -111,25 +122,26 @@ The neural net consists of six fully connected layers used as classifier into th
 
 \section*{Results}
 
-The accuracies of the basic classifiers on the training set are summarized in Figure \ref{fig:train_acc} below.
-\begin{figure}
+The performance of each classifier was assessed using the Area under curve (AUC) metric and accuracy.
+The AUC of the basic classifiers on Set B are summarized in Figure \ref{fig:train_acc} below.
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=0.45\textwidth]{train_accuracy.png}
+	\includegraphics[width=0.45\textwidth]{train_auc.png}
 	\label{fig:train_acc}
-	\caption{Accuracy on training set of the basic classifiers}
+	\caption{AUC scores on Set B for the basic classifiers}
 \end{figure}
-The following accuracies were obtained with all classifiers, including the nested classifier that was previously trained on the generalized training set.
-\begin{figure}
-	\centering
-	\includegraphics[width=0.45\textwidth]{test_accuracy.png}
-	\label{fig:test_acc}
-	\caption{Accuracy on the test set of all classifiers }
-\end{figure}
-On the figures above we can observe that the impact of the choice data transformation is significant. Overall, the best results were achieved using conventional PCA. Accuracies with PCA on the test were similar for all four classifier with a maximum of 93.4\% with log lasso and in all cases better than the baseline model.
-The accuracy of the predictions when using the network based GS and GFS transformations has a stronger dependence on classifier type and achieves lower accuracies overall than PCA. However, in certain cases, accuracies well superior to the baseline model with the same classifier were obtained, for example with GS HF and log lasso or GFS HF and random forest. In general, the results suggest that the performance is heavily dependent on the choice of classifier when using a network-based transformation, contrary to PCA.   
-
+On the figures above we can observe that the impact of the choice data transformation is significant.
+In average, the best results were achieved using the network-based GS LF transformation in combination  with maximum AUC of 0.963 for the random forest classifier. The other network-based transformations and PCA perform similarly or worse than the baseline model. It can also be observed that the random forest classifier produces AUC scores of at least 0.83 with all network-based transformations and the baseline model, yet a significant drop can be observed for PCA. Neural nets on the other hand struggles with GFS LF and GS HF but performs well on PCA-transformed data. The AUC scores for both the LF and HF graph-filtered data is similar to the baseline model for all classifier, thus no specific conclusion on the graph frequency components of the data can be made. Overall, on Set B, a slightly better performance than the baseline model can be obtained with the GS LF transformation.
 \par  
-Predictions with graph-filtered data without dimensionality reduction on the test set are slightly more accurate than the baseline model, hence indicating that using a gene network based on protein interactions can be a valid preprocessing method.
+The following AUC scores were obtained with all classifiers, including the nested classifier that was previously trained on the predictions of the basic classifiers on Set B (Figure \ref{fig:train_acc}).
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{test_auc.png}
+	\label{fig:test_acc}
+	\caption{AUC scores on Set C for all classifiers }
+\end{figure}
+While GS LF produced the best results on Set B, PCA clearly yield the best AUC scores on Set C, outperforming the baseline model with all classifiers. The performance with the network-based dimensionality reduction methods compared to the baseline model is heavily dependent on the choice of classifier. Compared Set B, the trend is similar for neural nets whereas a significant drop in performance with random forest is observable.
+Based on the results of Set B and C, PCA seems to be the most versatile dimensionality reduction method, producing results that are similar or superior to the baseline model.The scores obtained with the graph-filtered data without dimensionality reduction on Set C are similar or higher than the baseline model, but no clear winner between LF and HF can be determined. 
 
 \section*{Conclusion}
 
