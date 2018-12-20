@@ -117,7 +117,7 @@ The random forest classifier was also trained using scikit-learn. For training, 
 \par
 Training of XGBoost was done using the python package xgboost \cite{Chen:2016:XST:2939672.2939785}. In order to prevent overfitting, the best classifier was selected based on the best  accuracy on a validation set consisting of 20\% of the training data. A learning rate of 0.2 and a maximum tree depth of three. For all other parameters, default values were used.  
 \par
-The neural network consists of fully connected layers alternating with ReLU activation functions. It classifies into two classes (non-stem or stem cell) and returns the probabilities using a softmax classifier. Six layers were used for the dimensionality reduced data. Due to a lack of working memory, a hidden layer fc0 with 500 nodes was added at the front of the network for the data with full dimensionality. This allows us to compare the addition of a layer with 500 nodes to a PCA of the same number of dimensions. The architecture is shown in Table \ref{tab:ArchitectureNN} below.
+The neural network consists of fully connected layers alternating with ReLU activation functions using PyTorch \cite{paszke2017automatic}. It classifies into two classes (non-stem or stem cell) and returns the probabilities using a softmax classifier. Six layers were used for the dimensionality reduced data. Due to a lack of working memory, a hidden layer fc0 with 500 nodes was added at the front of the network for the data with full dimensionality. This allows us to compare the addition of a layer with 500 nodes to a PCA of the same number of dimensions. The architecture is shown in Table \ref{tab:ArchitectureNN} below.
 
 \begin{table}[H]
 	\centering
