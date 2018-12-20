@@ -116,7 +116,22 @@ The random forest classifier was also trained using scikit-learn. For training, 
 \par
 Training of XGBoost was done using the python package xgboost \cite{Chen:2016:XST:2939672.2939785}. In order to prevent overfitting, the best classifier was selected based on the best  accuracy on a validation set consisting of 20\% of the training data. A learning rate of 0.2 and a maximum tree depth of three. For all other parameters, default values were used.  
 \par
-The neural network consists of six fully connected layers used as classifier into the two classes not stem cell and stem cell. The probabilities are then computed using a softmax classifier. The network was trained with stochastic gradient descent on the cross entropy loss in ten epochs. In order to find the best learning rate and regularization constant, validation on part of the training set was conducted for different parameters during one epoch each. The best learning rate and weight decay were retained after two refinements. During the training of the neural network, a learning weight decay was used to avoid oscillating across the optimum.
+The neural network consists of fully connected layers alternating with ReLU activation functions using PyTorch \cite{paszke2017automatic}. It classifies into two classes (non-stem or stem cell) and returns the probabilities using a softmax classifier. Six layers were used for the dimensionality reduced data. Due to a lack of working memory, a hidden layer fc0 with 500 nodes was added at the front of the network for the data with full dimensionality. This allows us to compare the addition of a layer with 500 nodes to a PCA of the same number of dimensions. The architecture is shown in Table \ref{tab:ArchitectureNN} below.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{rccccccc}
+\hline
+  \textbf{Layer} &  fc0 &  fc1 & fc2 & fc3 & fc4 & fc5 & fc6 \\
+  \textbf{Nb Nodes} &  500 &  2500 & 1000 & 200 & 100 & 20 & 2 \\
+\hline
+\end{tabular}
+	\caption{Architecture of the neural network. fc0 is only present for data whose dimensions are not reduced.}
+	\label{tab:ArchitectureNN}
+	\vspace{-8mm}
+\end{table}
+
+The network was trained with stochastic gradient descent on the cross entropy loss in 40 epochs. The best learning rate and regularization constant were found by validating on 15\% of the train set. During the training of the neural network, a learning weight decay was used to avoid oscillating across the optimum.
 
 \section*{Results}
 The performance of each classifier was assessed using AUC.
