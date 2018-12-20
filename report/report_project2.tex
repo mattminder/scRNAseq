@@ -145,7 +145,7 @@ The AUC of the basic classifiers on set B are summarized in Figure \ref{fig:trai
 	\label{fig:train_acc}
 \end{figure}
 We observe that the impact of the choice of data transformation is significant.
-The best results were achieved using the network-based GS LF transformation in combination  with maximum AUC of 0.963 for the random forest classifier. Another notable .... The other network-based transformations perform similarly or worse than the baseline model. 
+The best results were achieved using the network-based GS LF transformation with a maximum AUC of 0.963 for the random forest classifier. Moreover, HF filtering and GS LF with XGBoost perform well, with an AUC of 0.951 and 0.929. All other models perform worse than the baseline model trained with XGBoost and random forest with an AUC of 0.910 and 0.900 respectively. Notably, the neural network on HF followed by PCA performs quite good, with an AUC of 0.878 performing only slightly worse than the baseline model.
 \par  
 The following AUC scores were obtained on set C with all classifiers, including the nested classifier that was previously trained on the predictions of the basic classifiers on set B (Figure \ref{fig:train_acc}).
 
@@ -155,15 +155,18 @@ The following AUC scores were obtained on set C with all classifiers, including 
 	\caption{AUC scores on set C for all classifiers }
 	\label{fig:test_acc}
 \end{figure}
+It becomes immediately apparent that the nested classifiers did not perform better than their non-nested counterparts. The attempted improvement and resistance to batch effects was thus not achieved, likely due to overfitting on Set B on which it was trained in the second layer. Moreover, what is of note here is that the best-performing method on set C, GS LF with random forest, performs very poorly with an AUC of 0.574, and is only barely better than just deciding by chance. Similarly, GS LF with XGBoost doesn't perform well either, with an AUC of 0.79. 
+
 
 While GS LF produced the best results on set B, PCA clearly yield the best AUC scores on set C, outperforming the baseline model with all classifiers. The performance with the network-based dimensionality reduction methods compared to the baseline model is heavily dependent on the choice of classifier. 
-
 Based on the results of set B and C, PCA seems to be the most versatile dimensionality reduction method, producing results that are similar or superior to the baseline model. The scores obtained with the graph-filtered data without dimensionality reduction on set C are similar or higher than the baseline model, but no clear winner between LF and HF can be determined. 
+\par
+In order to understand how our final classifier performed on cells that are transitioning between stem- and non-stem cells, we generated prediction on the Joost dataset containing cells of the hair follicle. Figure REFERENCE shows the predicted probabilities for individual cells grouped by cell type. Cell types are ordered to follow the lineage ordering as determined in the Joost paper. 
 
 \section*{Conclusion}
 As a follow-up to this report, it would be interesting to reconstruct the decision making process of the best-performing classifiers in order to backtrack the importance of individual genes in stemness decision. This may give valuable biological insights. Moreover, it could be of interest to take into account other networks in order to analyze whether they improve the classifier performance. A network that also yields consistently good predictions could be of interest for other applications, such as batch effect and drop-out correction\cite{vanDijk2017}. Additionally, the application of existing batch-effect and drop-out correction techniques previous to classifier training may improve performance. Finally, since scRNA-seq gets increasingly popular, retraining the classifier when more data is available is of interest. 
 \par
-All in all, we've created a valuable tool for the detection of stem cells. We've shown that the classifier performs reasonably well on independent test data. 
+%All in all, we've created a valuable tool for the detection of stem cells. We've shown that the classifier performs reasonably well on independent test data. 
 
 
 
