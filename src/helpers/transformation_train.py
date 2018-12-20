@@ -55,7 +55,7 @@ def fit_networkPCA(train_x, transf_folder, network_folder, n_components=500, ret
     :param attenuation: Only relevant if method='gbf', either 'low-pass' or 'high-pass'.
     :param fourier_basis_path: If None, fourier basis is computed. Otherwise, path to eigenvalues and eigenvectors saved
     in numpy format. (Tuple, path to eigenvalues is first element)
-    :param gene_name_path:
+    :param gene_name_path: Path to csv containing gene names, to map genes to network nodes
     :return: Nothing or transformator object if ret=True
     """
     netw_pca_obj = GeneNetworkPCA(network_folder + 'adjacency_sparse.npz', network_folder + 'node_index.csv',

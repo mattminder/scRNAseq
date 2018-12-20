@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 import torch.utils.data as utils
-from neural_net import NeuralNet, NeuralNetWhole
+from helpers.neural_net import NeuralNet, NeuralNetWhole
 
 
 def nn_train(x_train, y_train, classif_folder, lr=7e-2, reg=2e-10, momentum=0.95, epochs=10):

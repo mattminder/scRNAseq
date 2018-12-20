@@ -27,4 +27,4 @@ x = transf.fit_transform(train_x, '../network/genes_in_data.csv')
 
 # Training Classifier
 print('Training Classifiers')
-all_models_train(x, train_y, CLASSIF_FOLDER, 'no_nnet')
+all_models_train(x, train_y, CLASSIF_FOLDER, models='nnet')

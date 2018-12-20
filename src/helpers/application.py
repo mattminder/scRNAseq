@@ -5,6 +5,7 @@ import numpy as np
 import glob
 import xgboost as xgb
 
+
 def predict_all_methods(x, classif_folder, save_folder=None, save_type='npy', ret=False):
     """
     Creates predictions based on data x using all classifiers in classif_folders
@@ -100,13 +101,15 @@ def predict_from_files(x, classif_path, classif_type = 'skl'):
 
 
 def transform_from_files(x, transf_path, transf_type='skl',
-                         gene_name_path='../network/genes_in_data.csv'):
+                         gene_name_path='../network/genes_in_data.csv', transf2_path=None):
     """
     Uses input numpy array x, transforms it according to transformation in pickled object in path transf_path
     :param x: Input numpy array to transform
-    :param transf_path: Path to transformation object
-    :param transf_type: Type of transformation. 'skl' for sklearn-based transformation, 'network' for network based
-    :param gene_name_path: Only needed for transf_type == 'network', specifies path to gene annotation
+    :param transf_path: Path to transformation object (for 'filtered_and_pca' transformation of GeneNetworkPCA object)
+    :param transf_type: Type of transformation. 'skl' for sklearn-based transformation, 'network' for network based,
+    'filter_and_pca' for filtering using graph signal processing, followed by pca
+    :param gene_name_path: Only needed for transf_type == 'network' or 'filter_and_pca', path to gene annotation
+    :param transf2_path: Only needed for transf_type == 'filter_and_pca', path to fitted pca
     :return: Transformed x
     """
     if transf_type == 'skl':
@@ -121,6 +124,17 @@ def transform_from_files(x, transf_path, transf_type='skl',
         transf_file.close()
         return netw_pca.fit_transform(x, gene_name_path)
 
+    if transf_type == 'filter_and_pca':
+        filter_file = open(transf_path, "rb")
+        filter_obj = load_GeneNetworkPCA(filter_file)
+        filter_file.close()
+        filtered = filter_obj.fit_transform(x, gene_name_path)
+
+        pca_file = open(transf2_path, "rb")
+        pca = pkl.load(pca_file)
+        pca_file.close()
+        return pca.transform(filtered)
+
 
 def transform_multiple(x, transf_paths, transf_types, gene_name_path='../network/genes_in_data.csv'):
     """
@@ -128,7 +142,8 @@ def transform_multiple(x, transf_paths, transf_types, gene_name_path='../network
     paths given by transf_paths. Returns list of transformed arrays.
 
     :param x: Input numpy array to transform
-    :param transf_paths: List of paths to transformation objects
+    :param transf_paths: List of paths to transformation objects. If corresponding type is 'filter_and_pca', has to be
+    tuple with first object path to network transformation, second object path to pca transformation.
     :param transf_types: List of type of transformation. 'skl' for sklearn-based transformation, 'network' for
     network based
     :param gene_name_path: specifies path to gene annotation, needed if at least one transf_types is 'network'
@@ -138,36 +153,56 @@ def transform_multiple(x, transf_paths, transf_types, gene_name_path='../network
     for i in range(len(transf_paths)):
         path = transf_paths[i]
         transf_type = transf_types[i]
-        out.append(transform_from_files(x, path, transf_type, gene_name_path))
+        print(path)
+
+        if transf_type == 'filter_and_pca':
+            out.append(transform_from_files(x, path[0], transf_type, transf2_path=path[1]))
+        else:
+            out.append(transform_from_files(x, path, transf_type, gene_name_path))
 
     return out
 
 
-def load_true_pred(folder, ret_filelist = False, stack=True):
+def load_true_pred(folder, ret_filelist=False, stack=True):
     """
     Opens all numpy arrays in folder, extracts second column containing true predictions,
     then stacks them to form an input for training a nested model.
     Make sure that the specified folder only contains numpy arrays that were created with predict_all_methods
-    :param folder: base folder with all files to be later bound
+    :param folder: base folder with all files to be later bound, or list of folders
     :param ret_filelist: whether to return filelist as well
     :param stack: whether to stack result to an npy array (True), or to just return a list
     :return: Stacked array of true predictions of all numpy arrays in a folder
     """
-    filelist = glob.glob(folder+'*/*.npy') + glob.glob(folder+'*.npy')
-    tmp = []
-    for i in range(len(filelist)):
-        arr = np.load(filelist[i])
 
-        if arr.ndim == 1:
-            tmp.append(arr)
-        elif arr.ndim == 2:
-            tmp.append(arr[:, -1]) # Take last column for 2d array
+    # Recursively call function with every element of the list, if it is a list of folders
+    if isinstance(folder, list):
+        tmp = [load_true_pred(f, ret_filelist=ret_filelist, stack=stack) for f in folder]
 
-    if stack:
-        out = np.stack(tmp, axis=1)
+        # Stack if wanted
+        if stack:
+            out = np.concatenate(tmp, axis=1)
+        else:
+            out = tmp
+
+    # In case single folder is specified
     else:
-        out = tmp
+        filelist = glob.glob(folder+'*/*.npy') + glob.glob(folder+'*.npy')
+        tmp = []
+        for i in range(len(filelist)):
+            arr = np.load(filelist[i])
 
+            if arr.ndim == 1:
+                tmp.append(arr)
+            elif arr.ndim == 2:
+                tmp.append(arr[:, -1]) # Take last column for 2d array
+
+        # Stack if wanted
+        if stack:
+            out = np.stack(tmp, axis=1)
+        else:
+            out = tmp
+
+    # Return
     if ret_filelist:
         return out, filelist
     else:
@@ -182,8 +217,8 @@ def binarize(prob, thresh=.5):
     :return: Binarized data, to 0 and 1
     """
     out = np.copy(prob)
-    out[out>thresh] = 1
-    out[out<=thresh] = 0
+    out[out > thresh] = 1
+    out[out <= thresh] = 0
     return out
 
 
